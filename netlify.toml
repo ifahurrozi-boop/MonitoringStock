@@ -1,0 +1,10 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+  command = "echo 'Tidak ada build step'"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "same-origin"
