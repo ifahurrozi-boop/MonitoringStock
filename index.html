@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monitoring Stok ZM68</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE  work: the daily Sales–Operation control sheet of a branch warehouse, graphics-desk precision
+   IDEA   the team's own S&OP slide (navy Tempo Scan deck) turned into a live, self-updating control board
+   PICTURE the Sales–Operation flow board with live SKU counts, beside status-by-ABC bars
+   COLOUR white ground, navy band and ink, royal blue for structure; red/amber/green/violet/grey only for stock status
+   TYPE   Outfit 600–700 for titles and figures, Inter for text and tables
+   LAYOUT navy band (finding, source, upload) > sticky S&OP step tabs > KPI tiles > flow board 3/5 + ABC 2/5; phone: one column */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#0a1222);--panel:light-dark(#f3f6fb,#0f1a2e);--card:light-dark(#ffffff,#0d1729);
+--ink:light-dark(#0e1b33,#e8edf6);--ink2:light-dark(#43506a,#b0bccf);--muted:light-dark(#5f6c84,#8d9ab0);
+--line:light-dark(#dbe2ee,#22304a);--navy:light-dark(#0f2a5e,#0c1d42);--navy2:light-dark(#1a3d80,#1b3a7a);
+--blue:light-dark(#1f4fa3,#86abf3);--sky:light-dark(#e8effb,#142748);
+--OOS:light-dark(#d03b3b,#e66767);--Low:light-dark(#f2a516,#e8a317);--Normal:light-dark(#0e7f45,#119a3c);
+--Over:light-dark(#6250d6,#8f84ea);--NoMove:light-dark(#8b94a3,#b8b0a3);
+--gold:light-dark(#96792d,#cfad5c);--mtd:light-dark(#0c2352,#dfe9ff);--good:light-dark(#0e7f45,#4cc77c);--bad:light-dark(#b42f2c,#ff8f8a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html{scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:clip}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:clamp(16px,4vw,40px)}
+h1,h2,h3{font-family:Outfit,Inter,system-ui,sans-serif;letter-spacing:-.02em;margin:0}
+a{color:var(--blue)}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid #7fb0ff;outline-offset:2px}
+.top{background:var(--card);border-top:3px solid var(--gold);border-bottom:1px solid var(--line)}
+.bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 24px;padding-block:10px}
+.ident{display:flex;align-items:center;gap:16px}
+.logo{display:block;height:44px;width:auto}
+.logo-d{display:none}
+:root[data-theme=dark] .logo-l{display:none}:root[data-theme=dark] .logo-d{display:block}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) .logo-l{display:none}:root:not([data-theme=light]) .logo-d{display:block}}
+.vr{width:2px;height:40px;background:var(--gold);flex:none}
+.app{font:600 19px/1.2 Outfit,sans-serif;letter-spacing:-.01em;color:var(--ink)}
+.hsub{font-size:13px;color:var(--muted);margin-top:3px}
+.hsub b{color:var(--ink);font-weight:600}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid transparent;font-weight:600;font-size:15px;cursor:pointer;white-space:nowrap}
+.btn.pri{background:var(--navy2);color:#fff}
+.btn.pri:hover{background:var(--navy)}
+.btn.sec{background:var(--card);color:var(--ink);border-color:var(--line)}
+.btn.sec:hover{background:var(--sky)}
+.sum{background:var(--navy);color:#fff;padding-block:14px 16px}
+.sum h1{font-size:clamp(21px,2.3vw,26px);line-height:1.2;margin:0;text-wrap:balance}
+.lead{font-size:15px;line-height:1.5;margin:4px 0 0;color:#d9e4fb;max-width:110ch}
+@media(max-width:600px){.logo{height:36px}.vr{height:34px}.ident{gap:12px}.app{font-size:16px}.actions{width:100%}.actions .btn{flex:1}}
+.settings{background:var(--panel);border-bottom:1px solid var(--line);padding-block:20px}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:14px 18px}
+.fld label{display:block;font-size:14px;font-weight:600;color:var(--ink2);margin-bottom:4px}
+.fld input,.fld select,.search{width:100%;min-height:44px;font-size:16px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+.fld small{display:block;font-size:13px;color:var(--muted);margin-top:4px}
+.srow{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.tabs{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.trow{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.trow::-webkit-scrollbar{display:none}
+.tabs a{flex:none;display:flex;align-items:center;gap:8px;min-height:50px;padding:0 12px;color:var(--ink2);text-decoration:none;font-weight:600;font-size:15px;border-bottom:3px solid transparent}
+.tabs a:hover{color:var(--ink)}
+.tabs a[aria-current=page]{color:var(--ink);border-bottom-color:var(--blue)}
+.tabs a i{font-style:normal;display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--sky);color:var(--blue);font-size:13px;font-weight:700}
+main{padding-block:24px 56px}
+.vh{margin:4px 0 18px}
+.vh h2{font-size:clamp(26px,3vw,34px);line-height:1.1;text-wrap:balance}
+.vh p{margin:8px 0 0;color:var(--ink2);max-width:75ch}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.ph{margin-bottom:12px}
+.ph h3,.panel>h3{font-size:19px;line-height:1.25}
+.ph p{margin:4px 0 0;font-size:14px;color:var(--muted)}
+.ph.row{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-start}
+.grid2{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px;margin-top:20px}
+.grid2.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media(max-width:920px){.grid2,.grid2.even{grid-template-columns:minmax(0,1fr)}}
+.kpis{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:12px}
+@media(max-width:1040px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:600px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--card)}
+a.kpi:hover{border-color:var(--blue)}
+.kpi.w2{grid-column:span 2}
+.kpi.fill{background:var(--navy2);color:#fff;border-color:transparent}
+.kpi .v{font:700 clamp(28px,3vw,38px)/1.05 Outfit,sans-serif;letter-spacing:-.02em;white-space:nowrap}
+.kpi .l{display:flex;align-items:center;gap:7px;font-weight:600;font-size:15px;margin-top:6px}
+.kpi .s{font-size:13px;color:var(--muted);margin-top:2px}
+.kpi.fill .s{color:#c9d8f6}
+.meter{position:relative;height:8px;border-radius:4px;background:rgba(255,255,255,.22);margin-top:12px}
+.meter i{position:absolute;inset:0 auto 0 0;border-radius:4px;background:#fff}
+.meter b{position:absolute;top:-4px;bottom:-4px;width:2px;background:#e3c475}
+.sw{width:11px;height:11px;border-radius:3px;flex:none;display:inline-block}
+.strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:12px}
+.strip.s5{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:820px){.strip.s5{grid-template-columns:repeat(2,minmax(0,1fr))}.strip.s5>div:first-child{grid-column:span 2}}
+@media(max-width:600px){.strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.strip>div{background:var(--panel);padding:12px 16px}
+.strip .v{font:700 24px/1.15 Outfit,sans-serif;white-space:nowrap}
+.strip .l{font-size:14px;font-weight:600}
+.strip .s{font-size:13px;color:var(--muted)}
+.flow{display:grid}
+.fb{position:relative;display:block;text-decoration:none;color:inherit;border:1.5px solid color-mix(in srgb,var(--blue) 40%,transparent);border-radius:12px;padding:11px 14px;background:var(--card)}
+a.fb:hover{background:var(--sky)}
+.fb b{display:block;font:600 16px/1.3 Outfit,sans-serif;color:var(--blue)}
+.fb span{display:block;font-size:14px;line-height:1.45;color:var(--ink2);margin-top:2px}
+.fb em{display:inline-block;font-style:normal;font-weight:600;font-size:14px;margin-top:8px;color:var(--ink);background:var(--sky);padding:3px 9px;border-radius:6px}
+.fb.navy{background:var(--navy2);border-color:transparent;color:#fff}
+.fb.navy b{color:#fff}.fb.navy span{color:#d5e1fa}.fb.navy em{background:rgba(255,255,255,.16);color:#fff}
+a.fb.navy:hover{background:var(--navy)}
+.lanes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.lane{display:grid;gap:22px;align-content:start}
+.lh{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 8px;background:var(--navy2);color:#fff;border-radius:10px;padding:10px 12px;font:600 15px/1.25 Outfit,sans-serif;text-align:center;text-decoration:none}
+.lh:hover{background:var(--navy)}
+.lane>*{position:relative}
+.lane>*:not(:last-child)::before{content:"";position:absolute;left:50%;bottom:-13px;height:12px;border-left:2px solid var(--blue)}
+.lane>*:not(:last-child)::after{content:"";position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);border:6px solid transparent;border-top:9px solid var(--blue);border-bottom:0}
+.fork,.merge{position:relative;height:28px}
+.fork::before,.merge::before{content:"";position:absolute;left:25%;right:25%;height:14px;border:2px solid var(--blue)}
+.fork::before{top:12px;border-bottom:0;border-radius:8px 8px 0 0}
+.merge::before{top:2px;border-top:0;border-radius:0 0 8px 8px}
+.fork::after,.merge::after{content:"";position:absolute;left:50%;border-left:2px solid var(--blue);height:12px}
+.fork::after{top:0}.merge::after{top:16px}
+@media(max-width:600px){.lanes{grid-template-columns:minmax(0,1fr);gap:28px}.fork::before,.merge::before{display:none}.fork::after,.merge::after{top:2px;height:24px}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;color:var(--ink2);margin:6px 0 10px}
+.legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.legend b{color:var(--ink);font-weight:600}
+.sbar{display:grid;grid-template-columns:6.2em minmax(0,1fr);gap:10px;align-items:center;margin:12px 0}
+.sbar .lab{font-size:14px;line-height:1.25}
+.sbar .lab b{display:block;font-weight:600}
+.sbar .lab small{font-size:13px;color:var(--muted)}
+.track{display:flex;gap:2px;height:32px}
+.seg{display:grid;place-items:center;height:100%;font-size:13px;font-weight:700;color:#fff;overflow:hidden;cursor:default}
+.seg:first-child{border-radius:4px 0 0 4px}.seg:last-child{border-radius:0 4px 4px 0}.seg:only-child{border-radius:4px}
+.seg.k-Low,.seg.k-NoMove{color:#14110a}
+.bg-OOS{background:var(--OOS)}.bg-Low{background:var(--Low)}.bg-Normal{background:var(--Normal)}.bg-Over{background:var(--Over)}.bg-NoMove{background:var(--NoMove)}
+.rules{display:grid;gap:8px}
+.rule{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:12px;align-items:center;font-size:14px}
+.rule .tag{display:flex;align-items:center;justify-content:center;min-height:34px;border-radius:8px;font-weight:700;color:#fff;font-size:14px}
+.rule .tag.k-Low,.rule .tag.k-NoMove{color:#14110a}
+.rules.h{grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.rules.h .rule{grid-template-columns:minmax(0,1fr);gap:6px;align-items:start}
+@media(max-width:1000px){.rules.h{grid-template-columns:minmax(0,1fr);gap:8px}.rules.h .rule{grid-template-columns:7.5em minmax(0,1fr);align-items:center}}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:2px 9px 2px 7px;border-radius:999px;white-space:nowrap;color:var(--ink)}
+.chip i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.c-OOS{background:color-mix(in srgb,var(--OOS) 16%,var(--card))}.c-Low{background:color-mix(in srgb,var(--Low) 20%,var(--card))}.c-Normal{background:color-mix(in srgb,var(--Normal) 15%,var(--card))}.c-Over{background:color-mix(in srgb,var(--Over) 16%,var(--card))}.c-NoMove{background:color-mix(in srgb,var(--NoMove) 22%,var(--card))}
+.fig{position:relative;min-height:330px}
+.fig>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+svg text{font-family:Inter,system-ui,sans-serif;font-size:13px;fill:var(--ink2);paint-order:stroke;stroke:var(--card);stroke-width:4px;stroke-linejoin:round}
+svg .vl{fill:var(--ink);font-weight:600}
+.g-line{stroke:var(--line);stroke-width:1}
+.b-act{fill:var(--blue)}.b-mtd{fill:var(--mtd)}.b-proj{fill:url(#hatch)}.b-fc{fill:var(--sky);stroke:var(--blue);stroke-width:1.5;stroke-dasharray:4 3}
+.b-fcm{stroke:var(--OOS);stroke-width:3}
+.hit{fill:transparent;cursor:default}
+.hit:hover+.hl,.hit:focus+.hl{opacity:.12}
+.hl{fill:var(--ink);opacity:0;pointer-events:none}
+.hb{display:grid;grid-template-columns:minmax(0,13em) minmax(0,1fr) 5.6em;gap:10px;align-items:center;min-height:32px;font-size:14px}
+.hb .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb .vv{text-align:right;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.bt{position:relative;height:18px;background:var(--panel);border-radius:4px}
+.bt>i{position:absolute;inset:0 auto 0 0;border-radius:4px}
+.bt>b{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+.hb.k6{grid-template-columns:minmax(0,6em) minmax(0,1fr) 7.2em}
+.hb.k8{grid-template-columns:minmax(0,8em) minmax(0,1fr) 5.6em}
+.hb.k11{grid-template-columns:minmax(0,11em) minmax(0,1fr) 5.6em}
+@media(max-width:600px){.hb,.hb.k6,.hb.k8,.hb.k11{grid-template-columns:minmax(0,1fr) auto;row-gap:4px;padding-block:4px}.hb .bt{grid-column:1/-1;grid-row:2}.tbl td.sku,.tbl th.sku{min-width:9.5em;max-width:12em}}
+.stackv{display:flex;flex-direction:column;gap:20px}
+.stackv>.grow{flex:1}
+.vpanel{display:flex;flex-direction:column}
+.vpanel>.fig{flex:1}
+.plist{display:grid;gap:2px;margin:0;padding:0;list-style:none}
+.plist li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.plist li:last-child{border-bottom:0}
+.plist .nm{font-weight:600;line-height:1.3}
+.plist .nm small{display:block;font-weight:400;font-size:13px;color:var(--muted)}
+.plist .q{text-align:right;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+.plist .q small{display:block;font-weight:400;font-size:13px;color:var(--muted)}
+.sub{margin-top:22px}
+.vh-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.slicer{display:grid;gap:10px;margin-bottom:14px;padding:12px;border-radius:12px;background:var(--panel);border:1px solid var(--line)}
+.sl-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sl-grp{display:flex;flex-wrap:wrap;gap:6px}
+.fchip.sm{min-height:44px;padding:0 12px;font-size:13px}
+.sl-box{position:relative;flex:1 1 280px}
+.sl-list{position:absolute;z-index:30;left:0;right:0;top:calc(100% + 4px);max-height:360px;overflow:auto;margin:0;padding:4px;list-style:none;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(10,20,40,.2)}
+.sl-list li{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:14px;line-height:1.3}
+.sl-list li.act,.sl-list li:hover{background:var(--sky)}
+.sl-list .ck{width:18px;height:18px;border:1.5px solid var(--muted);border-radius:4px;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff}
+.sl-list li[aria-selected=true] .ck{background:var(--navy2);border-color:var(--navy2)}
+.sl-list .nm small{display:block;color:var(--muted);font-size:13px;margin-top:1px}
+.sl-list .vv{font-size:13px;color:var(--muted);white-space:nowrap}
+.sl-list li.all{font-weight:600;color:var(--blue)}
+.sl-list li.note{display:block;cursor:default;color:var(--muted);font-size:13px}
+.sl-list li.note:hover{background:none}
+.sl-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px}
+.sl-hint{color:var(--ink2);font-size:14px}
+.sl-hint b{color:var(--ink)}
+.schip{display:inline-flex;align-items:center;gap:6px;min-height:36px;max-width:100%;padding:0 6px 0 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--blue) 40%,transparent);background:var(--card);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer}
+.schip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:24em}
+.schip b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--sky);color:var(--blue);font-size:15px}
+.schip:hover b{background:var(--blue);color:#fff}
+.sl-more{font-size:13px;color:var(--muted)}
+.sl-clear{all:unset;cursor:pointer;font-size:14px;font-weight:600;color:var(--blue);padding:8px 6px;text-decoration:underline}
+.sl-clear:focus-visible{outline:3px solid #7fb0ff}
+.sk-sum{margin-bottom:6px}
+.sk-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.sk-stats div{background:var(--card);padding:8px 10px}
+.sk-stats b{display:block;font:700 18px/1.2 Outfit,sans-serif;white-space:nowrap}
+.sk-stats span{font-size:13px;color:var(--muted)}
+@media(max-width:600px){.sk-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.sk-stats div:first-child{grid-column:span 2}}
+.sk-one{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:14px;color:var(--ink2);margin-top:8px}
+.tg-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media(max-width:820px){.tg-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tgc{all:unset;box-sizing:border-box;display:block;cursor:pointer;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card);color:var(--ink)}
+.tgc:hover{border-color:var(--blue)}
+.tgc:focus-visible{outline:3px solid #7fb0ff;outline-offset:2px}
+.tgc[aria-pressed=true]{background:var(--sky);border-color:var(--navy2);box-shadow:inset 0 0 0 1px var(--navy2)}
+.tgc .h{display:flex;align-items:center;gap:7px;font-weight:600;font-size:14px}
+.tgc .h i{width:10px;height:10px;border-radius:50%;flex:none}
+.tgc b{display:block;font:700 26px/1.15 Outfit,sans-serif;margin-top:4px;white-space:nowrap}
+.tgc .s{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.pb{display:inline-flex;align-items:center;gap:8px}
+.pbt{position:relative;width:64px;height:8px;border-radius:4px;background:color-mix(in srgb,var(--muted) 22%,transparent)}
+.pbt i{position:absolute;inset:0 auto 0 0;border-radius:4px}
+.pbt b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+@media(max-width:600px){.pbt{display:none}}
+.pa-hi{color:var(--good);font-weight:600}.pa-lo{color:var(--bad);font-weight:600}
+.fu-s{font-weight:600;color:var(--blue)}
+.c-Inactive{background:color-mix(in srgb,var(--muted) 14%,var(--card))}.bg-Inactive{background:var(--muted)}
+.hb.pick{cursor:pointer;border-radius:6px}
+.hb.pick:hover{background:var(--sky)}
+.cov{display:grid;grid-template-columns:7em minmax(0,1fr) 3.4em;gap:10px;align-items:center;min-height:30px;font-size:14px}
+.cov .bt{height:22px;display:flex;gap:2px;background:transparent}
+.cov .bt>i{position:static;height:100%;border-radius:3px}
+.cov .vv{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.units{display:flex;flex-wrap:wrap;gap:4px}
+.unit{width:30px;height:30px;border-radius:5px;cursor:default}
+.units-wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:start}
+@media(max-width:600px){.units-wrap{grid-template-columns:minmax(0,1fr)}}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.fchip{min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-weight:600;font-size:14px;color:var(--ink2);cursor:pointer;white-space:nowrap}
+.fchip:hover{border-color:var(--blue);color:var(--ink)}
+.fchip[aria-pressed=true]{background:var(--navy2);color:#fff;border-color:transparent}
+.fchip .n{opacity:.75;margin-left:4px}
+.scroll{overflow-x:auto}
+.scroll.tall{max-height:72vh;overflow:auto;border:1px solid var(--line);border-radius:10px}
+table.tbl{border-collapse:separate;border-spacing:0;width:100%;font-size:14px}
+.tbl th{position:sticky;top:0;z-index:2;background:var(--panel);text-align:left;font-weight:600;font-size:13px;color:var(--ink2);padding:0;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl th button{all:unset;cursor:pointer;display:block;padding:10px 10px;box-sizing:border-box;width:100%}
+.tbl th button:focus-visible{outline:3px solid #7fb0ff;outline-offset:-3px}
+.tbl th.n button,.tbl th.n>span{text-align:right}
+.tbl th>span{display:block;padding:10px}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums;vertical-align:middle}
+.tbl .n{text-align:right}
+.tbl tr:hover td{background:var(--sky)}
+.tbl td.sku,.tbl th.sku{position:sticky;left:0;z-index:1;background:var(--card);white-space:normal;min-width:13em;max-width:20em;border-right:1px solid var(--line)}
+.tbl th.sku{z-index:3;background:var(--panel)}
+.tbl td.sku b{display:block;font-weight:600;line-height:1.3}
+.tbl td.sku span{font-size:13px;color:var(--muted)}
+.tbl strong{color:var(--blue)}
+.k-now{color:var(--bad);font-weight:600}
+.tfoot{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:10px;font-size:14px;color:var(--muted)}
+.empty{color:var(--muted);font-size:15px;padding:12px 0}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin:0 5px 1px 2px;vertical-align:middle}
+.dot.ok{background:var(--good)}.dot.bad{background:var(--bad)}
+.s-note{font-size:14px;color:var(--ink2);margin:14px 0 0}
+.adm{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.adm .fld{flex:0 1 260px}
+.e-form{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:6px}
+.e-form input{flex:0 1 260px;width:auto}
+.ro #btn-up,.ro #btn-share,.ro #s-apply,.ro #s-reset,.ro #s-clear,.ro #e-btn,.ro #e-hint{display:none!important}
+.empty-st{max-width:680px;margin:40px auto 64px;padding:32px;text-align:center}
+.empty-st h2{font-size:28px;margin-bottom:8px}
+.empty-st p{color:var(--ink2);margin:0 auto 20px;max-width:56ch}
+.empty-st .hint{font-size:14px;color:var(--muted);margin:14px auto 0}
+.ok{color:var(--good);font-weight:600}.no{color:var(--bad);font-weight:600}
+.dl{display:none}.can-dl .dl{display:inline-block}
+.drop{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:color-mix(in srgb,var(--navy) 88%,transparent);color:#fff;font:600 26px/1.3 Outfit,sans-serif;text-align:center;padding:24px}
+.drop div{border:3px dashed rgba(255,255,255,.6);border-radius:20px;padding:48px 32px;max-width:560px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:55;background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:10px;font-size:15px;font-weight:500;max-width:min(92vw,560px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.err{background:color-mix(in srgb,var(--OOS) 12%,var(--card));border:1px solid var(--OOS);border-radius:12px;padding:14px 16px;margin:16px 0 0;color:var(--ink)}
+.tip{position:fixed;z-index:60;pointer-events:none;background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:0 8px 22px rgba(10,20,40,.18);border-radius:10px;padding:8px 11px;font-size:13px;line-height:1.45;max-width:290px}
+.tip b{display:block;font-size:14px}
+.doc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+@media(max-width:920px){.doc{grid-template-columns:minmax(0,1fr)}}
+.doc h3{font-size:19px;margin-bottom:10px}
+.doc p,.doc li{font-size:15px;color:var(--ink2)}
+.doc ol,.doc ul{padding-left:1.2em;margin:0}
+.doc li{margin:6px 0}
+.dl-list{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr);gap:8px 14px;font-size:14px;margin:0}
+.dl-list dt{font-weight:600}
+.dl-list dd{margin:0;color:var(--ink2)}
+@media(max-width:600px){.dl-list{grid-template-columns:minmax(0,1fr)}.dl-list dd{margin-bottom:8px}}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:6px}
+@media(max-width:820px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.steps a{display:block;text-decoration:none;color:inherit;background:var(--panel);border-radius:12px;padding:12px 14px;border:1px solid var(--line)}
+.steps a:hover{border-color:var(--blue)}
+.steps b{display:block;font:600 16px Outfit,sans-serif;color:var(--blue)}
+.steps span{font-size:14px;color:var(--ink2)}
+@media (prefers-reduced-motion:no-preference){.view{animation:fade .25s ease-out}@keyframes fade{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap bar">
+    <div class="ident">
+      <img class="logo logo-l" alt="Tempo Scan" width="200" height="96" src="data:image/png;base64,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">
+      <img class="logo logo-d" alt="Tempo Scan" width="200" height="96" src="data:image/png;base64,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">
+      <span class="vr" aria-hidden="true"></span>
+      <div><div class="app">Monitoring Stock Sales–Operation</div><div class="hsub"><span id="h-src">S&amp;OP · data ZM68</span> <span id="h-share"></span></div></div>
+    </div>
+    <div class="actions">
+      <button class="btn pri" id="btn-up" type="button">Perbarui data ZM68</button>
+      <button class="btn sec" id="btn-share" type="button" hidden>Bagikan ke viewer</button>
+      <button class="btn sec" id="btn-set" type="button" aria-expanded="false" aria-controls="settings">Pengaturan</button>
+      <input type="file" id="file" accept=".xlsx,.xlsm,.csv,.txt" hidden>
+    </div>
+  </div>
+</header>
+<section class="sum" aria-label="Ringkasan status">
+  <div class="wrap">
+    <h1 id="h-title">Memuat data ZM68…</h1>
+    <p class="lead" id="h-lead">Unggah export ZM68 (.xlsx) dari SAP, atau tarik file ke halaman ini. Semua status, KPI dan daftar aksi dihitung otomatis.</p>
+    <div id="h-err" class="err" hidden></div>
+  </div>
+</section>
+
+<section id="settings" class="settings" hidden aria-label="Pengaturan">
+  <div class="wrap">
+    <form id="sform" class="sgrid">
+      <div class="fld"><label for="s-date">Tanggal data</label><input type="date" id="s-date"><small>Dipakai untuk run-rate & sisa hari bulan ini</small></div>
+      <div class="fld"><label for="s-low">Batas Low (% Std T)</label><input type="number" id="s-low" min="1" max="200" step="1"><small>T di bawah ini = Low</small></div>
+      <div class="fld"><label for="s-over">Batas Over (% Std T)</label><input type="number" id="s-over" min="50" max="1000" step="1"><small>T di atas ini = Over</small></div>
+      <div class="fld"><label for="s-exb">Basis excess (% Std T)</label><input type="number" id="s-exb" min="50" max="300" step="1"><small>Stok di atas basis ini dihitung excess</small></div>
+      <div class="fld"><label for="s-tgt">Target availability (%)</label><input type="number" id="s-tgt" min="50" max="100" step="0.5"></div>
+      <div class="fld"><label for="s-std">Std T bila kosong (bln)</label><input type="number" id="s-std" min="0.1" max="12" step="0.01"><small>Untuk SKU dengan Standart T = 0</small></div>
+    </form>
+    <div class="adm" id="adm" hidden>
+      <div class="fld"><label for="s-ak">Kunci admin</label><input id="s-ak" type="password" autocomplete="current-password"><small id="adm-st">Hanya untuk tim yang memperbarui data ZM68</small></div>
+      <button class="btn sec" type="button" id="s-login">Masuk admin</button>
+      <button class="btn sec" type="button" id="s-logout" hidden>Keluar admin</button>
+    </div>
+    <p class="s-note" id="s-note" hidden>Pengaturan mengikuti pemilik dashboard dan berlaku untuk semua viewer.</p>
+    <div class="srow">
+      <button class="btn sec" type="button" id="s-apply">Terapkan</button>
+      <button class="btn sec" type="button" id="s-reset">Kembalikan default</button>
+      <button class="btn sec" type="button" id="s-clear">Hapus data tersimpan di browser</button>
+    </div>
+  </div>
+</section>
+
+<nav class="tabs" aria-label="Alur S&amp;OP">
+  <div class="wrap trow">
+    <a href="#ringkasan" data-v="ringkasan">Ringkasan</a>
+    <a href="#demand" data-v="demand"><i>1</i>Demand review</a>
+    <a href="#supply" data-v="supply"><i>2</i>Supply review</a>
+    <a href="#excess" data-v="excess"><i>3</i>Over &amp; no move</a>
+    <a href="#review" data-v="review"><i>4</i>Review mingguan</a>
+    <a href="#data" data-v="data">Data SKU</a>
+    <a href="#aturan" data-v="aturan">Aturan &amp; panduan</a>
+  </div>
+</nav>
+
+<section class="wrap" id="empty" hidden>
+  <div class="panel empty-st">
+    <h2 id="e-h">Mulai dengan file ZM68</h2>
+    <p id="e-p">Jalankan ZM68 di SAP, export ke spreadsheet (.xlsx), lalu unggah di sini. Semua status stok, KPI dan daftar aksi Sales–Operation dihitung otomatis.</p>
+    <button class="btn pri" type="button" data-upload="1" id="e-btn">Pilih file ZM68</button>
+    <p class="hint" id="e-hint">atau tarik file ke halaman ini</p>
+    <form id="e-form" class="e-form" hidden><label for="e-key" class="vh-only">Kode akses</label><input id="e-key" class="search" type="password" placeholder="Kode akses dashboard" autocomplete="current-password"><button class="btn pri" type="submit">Buka dashboard</button></form>
+    <p class="hint" id="e-err" hidden></p>
+  </div>
+</section>
+<main class="wrap" id="main">
+  <section class="view" id="v-ringkasan" aria-label="Ringkasan">
+    <div class="kpis" id="kpis"></div>
+    <div class="strip" id="strip"></div>
+    <div class="grid2">
+      <div class="panel">
+        <div class="ph"><h3>Alur Sales–Operation harian</h3><p>Klik setiap kotak untuk membuka daftar aksinya.</p></div>
+        <div class="flow" id="flow"></div>
+      </div>
+      <div class="stackv">
+        <div class="panel"><div class="ph"><h3 id="abc-h">Status SKU per kelas ABC</h3><p>Jumlah SKU aktif (ada stok atau ada demand)</p></div><div class="legend" id="abc-lg"></div><div id="abc"></div></div>
+        <div class="panel grow"><div class="ph"><h3>Prioritas order pagi ini</h3><p>OOS/Low tanpa incoming, kelas A–B lebih dulu</p></div><ul class="plist" id="pri"></ul><a href="#supply" data-of="now" style="display:inline-block;margin-top:8px;font-weight:600;font-size:14px">Lihat semua di Supply review</a></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:20px"><div class="ph"><h3>Aturan status stok</h3><p>T = Curr UU Stock ÷ Average Sales United (bulan coverage), dibandingkan dengan Standart T</p></div><div class="rules h" id="rules"></div></div>
+  </section>
+
+  <section class="view" id="v-demand" aria-label="Demand review" hidden>
+    <div class="vh"><h2 id="d-title"></h2><p id="d-lead"></p></div>
+    <div class="strip s5" id="d-kpi"></div>
+    <div class="grid2">
+      <div class="panel vpanel" id="d-panel"><div class="ph"><h3>Volume penjualan &amp; forecast (pcs)</h3><p id="d-sel-p">6 bulan aktual, bulan berjalan (MTD + proyeksi run-rate) dan forecast 3 bulan ke depan</p></div>
+        <div class="slicer" id="slicer">
+          <div class="sl-row">
+            <div class="sl-grp" id="sk-abc" role="group" aria-label="Slicer kelas ABC"></div>
+            <div class="sl-box">
+              <label class="vh-only" for="sk-q">Slicer SKU / produk</label>
+              <input id="sk-q" class="search" type="search" placeholder="Slicer SKU / produk: ketik kode atau nama, mis. BEBELAC" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sk-list" aria-autocomplete="list">
+              <ul id="sk-list" class="sl-list" role="listbox" aria-multiselectable="true" aria-label="Pilihan SKU" hidden></ul>
+            </div>
+          </div>
+          <div class="sl-chips" id="sk-chips"></div>
+        </div>
+        <div class="sk-sum" id="sk-sum" hidden></div>
+        <div class="legend" id="d-lg"></div><div class="fig" id="d-fig"><svg id="d-svg" role="img" aria-label="Grafik volume penjualan dan forecast"></svg></div></div>
+      <div class="panel"><div class="ph"><h3>Pencapaian Sales MTD vs forecast</h3><p id="d-ach-p">15 SKU dengan forecast bulan ini terbesar. Garis tegak = waktu berjalan. Klik baris untuk melihat grafiknya.</p></div><div id="d-ach"></div></div>
+    </div>
+    <div class="panel" style="margin-top:20px" id="tg-panel">
+      <div class="ph row"><div><h3>Pencapaian target per SKU: Sales MTD vs forecast &amp; average</h3><p id="tg-p"></p></div><div class="toolbar"><button class="btn sec" data-copy="t-tg" type="button">Salin</button><button class="btn sec dl" data-dl="t-tg" type="button">Unduh Excel</button></div></div>
+      <div class="tg-cards" id="tg-cards" role="group" aria-label="Filter kategori target"></div>
+      <div class="toolbar" id="tg-f" role="group" aria-label="Filter follow up dan kelas" style="margin:14px 0 12px"></div>
+      <div id="t-tg"></div>
+    </div>
+    <div class="panel" style="margin-top:20px"><div class="ph row"><div><h3>Demand tidak terlayani (lost sales MTD)</h3><p>OOS Qty per SKU: input prioritas untuk supply review</p></div><div class="toolbar"><button class="btn sec" data-copy="t-lost" type="button">Salin</button><button class="btn sec dl" data-dl="t-lost" type="button">Unduh Excel</button></div></div><div id="t-lost"></div></div>
+  </section>
+
+  <section class="view" id="v-supply" aria-label="Supply review" hidden>
+    <div class="vh"><h2 id="s-title"></h2><p id="s-lead"></p></div>
+    <div class="strip" id="s-kpi"></div>
+    <div class="grid2">
+      <div class="panel"><div class="ph"><h3>Sebaran coverage terhadap standar</h3><p>Jumlah SKU ber-demand per kelompok T ÷ Std T</p></div><div class="legend" id="cov-lg"></div><div id="cov"></div></div>
+      <div class="panel"><div class="ph"><h3>Incoming untuk SKU OOS &amp; Low</h3><p>Pipeline yang sudah berjalan (pcs)</p></div><div id="inc"></div><div class="ph sub"><h3>Status order SKU OOS &amp; Low</h3></div><div id="ordmix"></div><div class="ph sub"><h3>Rekomendasi order per kelas ABC</h3><p>Qty (pcs) dan jumlah SKU</p></div><div id="ordabc"></div></div>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="ph row"><div><h3>Operation order hari ini</h3><p id="o-p">Rekomendasi = Std T × average sales − stok proyeksi (stok + intransit + DN + open PO)</p></div><div class="toolbar"><button class="btn sec" data-copy="t-ord" type="button">Salin</button><button class="btn sec dl" data-dl="t-ord" type="button">Unduh Excel</button></div></div>
+      <div class="toolbar" id="o-f" role="group" aria-label="Filter daftar order" style="margin-bottom:12px"></div>
+      <div id="t-ord"></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-excess" aria-label="Over dan no move" hidden>
+    <div class="vh"><h2 id="x-title"></h2><p id="x-lead"></p></div>
+    <div class="strip s5" id="x-kpi"></div>
+    <div class="grid2">
+      <div class="panel"><div class="ph"><h3 id="x-top-h">10 SKU dengan nilai excess terbesar</h3><p>Nilai excess = excess qty × NSP</p></div><div class="legend" id="x-lg"></div><div id="x-top"></div></div>
+      <div class="panel"><div class="ph"><h3>Excess per kelas ABC</h3><p>Nilai (Rp) dan pallet</p></div><div id="x-abc"></div><div class="ph sub"><h3>Excess per status</h3><p>Over stock vs no movement</p></div><div id="x-st"></div></div>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="ph row"><div><h3>Daftar SKU over &amp; no movement untuk Sales</h3><p>Kirim ke Sales: prioritas kunjungan &amp; penawaran outlet</p></div><div class="toolbar"><button class="btn sec" data-copy="t-ex" type="button">Salin</button><button class="btn sec dl" data-dl="t-ex" type="button">Unduh Excel</button></div></div>
+      <div class="toolbar" id="x-f" role="group" aria-label="Filter daftar excess" style="margin-bottom:12px"></div>
+      <div id="t-ex"></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-review" aria-label="Review mingguan" hidden>
+    <div class="vh"><h2 id="r-title"></h2><p id="r-lead"></p></div>
+    <div class="grid2">
+      <div class="panel"><div class="ph"><h3>Scorecard minggu ini</h3><p>Dibanding data sebelumnya yang pernah diunggah di browser ini</p></div><div id="score"></div></div>
+      <div class="panel"><div class="ph"><h3>SKU prioritas kelas A</h3><p>Satu kotak = satu SKU, urut Sales MTD tertinggi (kiri atas)</p></div><div class="legend" id="u-lg"></div><div class="units" id="units"></div></div>
+    </div>
+    <div class="panel" style="margin-top:20px">
+      <div class="ph row"><div><h3>Kelas A di luar normal: bahas di review</h3><p>Aksi otomatis: OOS/Low → Operation order; Over → Sales dorong penjualan</p></div><div class="toolbar"><button class="btn sec" data-copy="t-a" type="button">Salin</button><button class="btn sec dl" data-dl="t-a" type="button">Unduh Excel</button></div></div>
+      <div id="t-a"></div>
+    </div>
+    <div class="panel" style="margin-top:20px"><div class="ph"><h3>Riwayat KPI</h3><p>Terisi otomatis setiap kali file ZM68 dengan tanggal baru diunggah di browser ini</p></div><div id="hist"></div></div>
+  </section>
+
+  <section class="view" id="v-data" aria-label="Data SKU" hidden>
+    <div class="vh"><h2 id="t-title">Status per SKU</h2><p>Cari, saring dan urutkan seluruh SKU aktif. Klik judul kolom untuk mengurutkan.</p></div>
+    <div class="panel">
+      <div class="toolbar" style="margin-bottom:10px">
+        <input class="search" id="q" type="search" placeholder="Cari kode material atau nama SKU" aria-label="Cari SKU" style="flex:1 1 260px;width:auto">
+        <select id="abcf" class="search" aria-label="Filter kelas ABC" style="flex:0 0 auto;width:auto"><option value="all">Semua kelas</option><option value="A">Kelas A</option><option value="B">Kelas B</option><option value="C">Kelas C</option></select>
+        <button class="btn sec" data-copy="t-all" type="button">Salin</button><button class="btn sec dl" data-dl="t-all" type="button">Unduh Excel</button>
+      </div>
+      <div class="toolbar" id="stf" role="group" aria-label="Filter status" style="margin-bottom:12px"></div>
+      <div id="t-all"></div>
+    </div>
+  </section>
+
+  <section class="view" id="v-aturan" aria-label="Aturan dan panduan" hidden>
+    <div class="vh"><h2>Cara kerja dashboard &amp; alur S&amp;OP</h2><p>Satu file ZM68 menggerakkan semua halaman. Operation cukup mengunggah export terbaru setiap pagi.</p></div>
+    <div class="panel"><h3 style="margin-bottom:10px">Siklus S&amp;OP di dashboard ini</h3>
+      <div class="steps">
+        <a href="#demand"><b>1 · Demand review</b><span>Sales MTD vs forecast, tren 6 bulan, proyeksi run-rate dan lost sales.</span></a>
+        <a href="#supply"><b>2 · Supply review</b><span>OOS &amp; Low, cek incoming, rekomendasi order hari ini.</span></a>
+        <a href="#excess"><b>3 · Over &amp; no move</b><span>Rekonsiliasi kelebihan stok: daftar dorong penjualan untuk Sales.</span></a>
+        <a href="#review"><b>4 · Review mingguan</b><span>Pre-S&amp;OP / executive: kelas A, scorecard dan tren KPI.</span></a>
+      </div>
+    </div>
+    <div class="doc" style="margin-top:20px">
+      <div class="panel"><h3>Ritme kerja</h3>
+        <ul>
+          <li><b>Harian (pagi), Operation:</b> export ZM68 → klik <i>Perbarui data ZM68</i> → kirim daftar over/no move ke Sales dan proses <i>Operation order hari ini</i>.</li>
+          <li><b>Harian, Sales:</b> SKU over jadi prioritas kunjungan &amp; penawaran outlet; follow-up outlet untuk SKU OOS yang sudah ada incoming.</li>
+          <li><b>Mingguan, Sales + Operation:</b> buka <i>Review mingguan</i>; SKU prioritas = Sales MTD &amp; average tertinggi (kelas A).</li>
+          <li><b>Bulanan, S&amp;OP:</b> Demand review → Supply review → rekonsiliasi excess/shortage → keputusan executive.</li>
+        </ul>
+        <h3 style="margin-top:20px">Cara memperbarui data</h3>
+        <ol>
+          <li>Di SAP jalankan ZM68 dan export ke spreadsheet (.xlsx). Format CSV juga bisa.</li>
+          <li>Klik <i>Perbarui data ZM68</i> atau tarik file ke halaman ini.</li>
+          <li>Cek <i>Tanggal data</i> di Pengaturan (otomatis dari tanggal file).</li>
+          <li>Salin atau unduh daftar aksi untuk dikirim ke tim.</li>
+        </ol>
+        <p><b>Berbagi dengan Sales:</b> data yang diunggah pemilik dashboard tersimpan sebagai data bersama dan langsung tampil untuk semua orang yang diberi akses ke link ini, tanpa perlu memuat ulang. Viewer hanya bisa melihat, menyaring dan menyalin; tombol unggah dan pengaturan hanya aktif untuk pemilik/editor. Jika halaman dipasang di web server sendiri (mis. GitHub Pages), dashboard membaca file <code>data/zm68.xlsx</code> di server dan memeriksa pembaruan setiap 5 menit.</p>
+        <p><b>Kolom wajib:</b> Material, Material Description, Curr UU Stock, Standart T, Average Sales United, Sales MTD. <b>Opsional:</b> NSP, Intransit, DN, Open PO/STR, Curr UU Stk in Pallette, OOS Qty, ABC analisis, Forecast M, Forecast M+1…M+3, Sales M-6…M-1. Urutan kolom bebas; baris total tanpa kode material diabaikan.</p>
+      </div>
+      <div class="panel"><h3>Definisi perhitungan</h3>
+        <dl class="dl-list" id="defs"></dl>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="drop" id="drop" hidden><div>Lepaskan file ZM68 (.xlsx / .csv) untuk memperbarui dashboard</div></div>
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+{
+/* ---------- constants ---------- */
+const COLS=["mat","desc","abc","nsp","stock","curT","stdT","open","fcM","intr","dn","openpo","avg","pal","mtd","oosq","oosp","s6","s5","s4","s3","s2","s1","f1","f2","f3","totpo","poqty"];
+const TXT=new Set(["mat","desc","abc"]);
+const HEAD={mat:["material","materialno","materialnumber"],desc:["materialdescription","description","deskripsi"],abc:["abcanalisis","abcanalysis","abc"],nsp:["nsp"],stock:["curruustock","uustock"],curT:["currentt"],stdT:["standartt","standardt"],open:["openingstock"],fcM:["forecastm"],intr:["intransit"],dn:["dn"],openpo:["openpostr","openpo"],avg:["averagesalesunited","averagesales","avgsales"],pal:["curruustkinpallette","curruustkinpallet","curruustkinpalette"],mtd:["salesmtd"],oosq:["oosqty"],oosp:["oos"],s6:["salesm6"],s5:["salesm5"],s4:["salesm4"],s3:["salesm3"],s2:["salesm2"],s1:["salesm1"],f1:["forecastm1"],f2:["forecastm2"],f3:["forecastm3"],totpo:["totalpostr"],poqty:["poqty"]};
+const LABEL={mat:"Material",desc:"Material Description",stock:"Curr UU Stock",avg:"Average Sales United",mtd:"Sales MTD",stdT:"Standart T"};
+const REQ=["mat","stock","avg","mtd","stdT"];
+const SUM=["mtd","fcM","f1","f2","f3","s6","s5","s4","s3","s2","s1"];
+const ORDER=["OOS","Low","Normal","Over","NoMove"];
+const SN={OOS:"OOS",Low:"Low",Normal:"Normal",Over:"Over",NoMove:"No Move",Inactive:"Tidak aktif"};
+const SL={OOS:"Out of stock",Low:"Low stock",Normal:"Normal",Over:"Over stock",NoMove:"No movement",Inactive:"Tidak aktif (stok 0, belum ada sales)"};
+const TG={ok:["Tercapai","var(--good)"],on:["On track","var(--blue)"],low:["Di bawah target","var(--Low)"],nf:["Tanpa forecast","var(--NoMove)"]};
+const DEF={low:50,over:120,exb:100,tgt:95,stdDef:1};
+const MON=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const MS=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+const K={data:"zm68.data.v1",set:"zm68.settings.v1",hist:"zm68.hist.v1",ak:"zm68.adminKey",vk:"zm68.viewKey"};
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nf0=new Intl.NumberFormat("id-ID",{maximumFractionDigits:0});
+const nf1=new Intl.NumberFormat("id-ID",{minimumFractionDigits:1,maximumFractionDigits:1});
+const nf2=new Intl.NumberFormat("id-ID",{minimumFractionDigits:2,maximumFractionDigits:2});
+const ok=n=>n!=null&&isFinite(n);
+const fI=n=>ok(n)?nf0.format(Math.round(n)):"–";
+const f1=n=>ok(n)?nf1.format(n):"–";
+const f2=n=>ok(n)?nf2.format(n):"–";
+const fP=(x,d=1)=>ok(x)?(d?nf1:nf0).format(x*100)+"%":"–";
+const fS=n=>{if(!ok(n))return"–";const a=Math.abs(n);if(a>=1e9)return nf2.format(n/1e9)+" M";if(a>=1e6)return nf2.format(n/1e6)+" jt";if(a>=1e4)return nf0.format(n/1e3)+" rb";return fI(n)};
+const fRp=n=>{if(!ok(n))return"–";const a=Math.abs(n);if(a>=1e9)return"Rp"+nf2.format(n/1e9)+" M";if(a>=1e6)return"Rp"+nf1.format(n/1e6)+" jt";if(a>=1e3)return"Rp"+nf0.format(n/1e3)+" rb";return"Rp"+fI(n)};
+const pd=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||"");return m?new Date(+m[1],+m[2]-1,+m[3]):null};
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const fD=d=>`${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}`;
+const fDs=s=>{const d=pd(s);return d?`${d.getDate()} ${MS[d.getMonth()]} ${d.getFullYear()}`:s};
+const norm=s=>String(s??"").toLowerCase().replace(/[^a-z0-9]/g,"");
+const lsGet=k=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
+const lsDel=k=>{try{localStorage.removeItem(k)}catch(e){}};
+const chip=s=>`<span class="chip c-${s}"><i class="bg-${s}"></i>${SN[s]}</span>`;
+const sw=s=>`<i class="sw bg-${s}"></i>`;
+const tipA=lines=>` data-tip="${esc(lines.join("\n"))}" tabindex="0"`;
+
+let D=null,M=null,S=Object.assign({},DEF,lsGet(K.set)||{});
+let dl=null;
+
+/* ---------- XLSX / CSV reading ---------- */
+const ENT={amp:"&",lt:"<",gt:">",quot:'"',apos:"'"};
+const unx=s=>s.indexOf("&")<0?s:s.replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos);/gi,(m,e)=>e[0]==="#"?String.fromCodePoint(/x/i.test(e[1])?parseInt(e.slice(2),16):parseInt(e.slice(1),10)):ENT[e.toLowerCase()]);
+async function unzip(buf){
+  const dv=new DataView(buf),u8=new Uint8Array(buf),td=new TextDecoder();
+  let e=-1;for(let i=buf.byteLength-22;i>=Math.max(0,buf.byteLength-70000);i--){if(dv.getUint32(i,true)===0x06054b50){e=i;break}}
+  if(e<0)throw new Error("File bukan .xlsx yang valid. Simpan ulang dari Excel sebagai .xlsx lalu unggah lagi.");
+  const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const F={};
+  for(let k=0;k<n;k++){if(dv.getUint32(p,true)!==0x02014b50)break;const nl=dv.getUint16(p+28,true),xl=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true);
+    F[td.decode(u8.subarray(p+46,p+46+nl))]={m:dv.getUint16(p+10,true),cs:dv.getUint32(p+20,true),off:dv.getUint32(p+42,true)};p+=46+nl+xl+cl}
+  const read=async name=>{const f=F[name];if(!f)return null;const s=f.off+30+dv.getUint16(f.off+26,true)+dv.getUint16(f.off+28,true);const data=u8.subarray(s,s+f.cs);
+    if(f.m===0)return td.decode(data);if(f.m!==8)throw new Error("Kompresi file tidak didukung.");
+    if(typeof DecompressionStream==="undefined")throw new Error("Browser ini belum mendukung pembacaan .xlsx. Gunakan Chrome/Edge terbaru atau unggah CSV.");
+    return await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text()};
+  return {names:Object.keys(F),read};
+}
+const colIdx=r=>{let n=0;for(const ch of r){const c=ch.charCodeAt(0);if(c<65||c>90)break;n=n*26+c-64}return n-1};
+async function parseXLSX(buf){
+  const z=await unzip(buf);
+  let path=null;const wb=await z.read("xl/workbook.xml"),rel=await z.read("xl/_rels/workbook.xml.rels");
+  if(wb&&rel){const sm=/<sheet\b[^>]*?\br:id="([^"]+)"/.exec(wb)||/<sheet\b[^>]*?\bid="([^"]+)"/.exec(wb);
+    if(sm){for(const t of rel.match(/<Relationship\b[^>]*>/g)||[]){const id=/\bId="([^"]+)"/.exec(t),tg=/\bTarget="([^"]+)"/.exec(t);if(id&&tg&&id[1]===sm[1]){path=tg[1].startsWith("/")?tg[1].slice(1):"xl/"+tg[1].replace(/^\.\//,"");break}}}}
+  if(!path||!z.names.includes(path))path=z.names.filter(n=>/^xl\/worksheets\/sheet\d*\.xml$/.test(n)).sort()[0];
+  if(!path)throw new Error("Sheet data tidak ditemukan di file ini.");
+  const sst=await z.read("xl/sharedStrings.xml"),ss=[];
+  if(sst){const re=/<si(?:\s[^>]*)?(?:\/>|>([\s\S]*?)<\/si>)/g;let m;while((m=re.exec(sst))){let t="";const body=(m[1]||"").replace(/<rPh\b[\s\S]*?<\/rPh>/g,"");const rt=/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/g;let q;while((q=rt.exec(body)))t+=q[1];ss.push(unx(t))}}
+  const xml=await z.read(path),rows=[];
+  const rre=/<row\b[^>]*?(?:\/>|>([\s\S]*?)<\/row>)/g,cre=/<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;let rm;
+  while((rm=rre.exec(xml))){const row=[];if(rm[1]){let cm,ci=0;cre.lastIndex=0;while((cm=cre.exec(rm[1]))){const at=cm[1],body=cm[2]||"";const r=/\br="([A-Z]+)\d+"/.exec(at);if(r)ci=colIdx(r[1]);
+      const t=(/\bt="([^"]+)"/.exec(at)||[])[1];let v=null;
+      if(t==="inlineStr"){const q=/<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/.exec(body);v=q?unx(q[1]):""}
+      else{const q=/<v>([\s\S]*?)<\/v>/.exec(body);if(q){v=q[1];if(t==="s")v=ss[+v]??"";else if(t==="str"||t==="e")v=unx(v);else if(t==="b")v=v==="1"?1:0;else v=parseFloat(v)}}
+      row[ci]=v;ci++}}
+    rows.push(row)}
+  return rows;
+}
+function parseCSV(text){
+  text=text.replace(/^﻿/,"");const first=(text.split(/\r?\n/).find(l=>l.trim())||"");
+  const cnt=c=>first.split(c).length;const del=["\t",";",","].sort((a,b)=>cnt(b)-cnt(a))[0];
+  const rows=[];let row=[],f="",q=false;
+  for(let i=0;i<text.length;i++){const c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c==='"')q=true;else if(c===del){row.push(f);f=""}else if(c==="\n"||c==="\r"){if(c==="\r"&&text[i+1]==="\n")i++;row.push(f);rows.push(row);row=[];f=""}else f+=c}
+  if(f!==""||row.length){row.push(f);rows.push(row)}
+  rows.dec=del===";"?",":".";return rows;
+}
+function toNum(v,dec){if(typeof v==="number")return isFinite(v)?v:0;if(v==null)return 0;let s=String(v).trim().replace(/\s/g,"");if(!s)return 0;
+  let neg=false;if(/-$/.test(s)){neg=true;s=s.slice(0,-1)}
+  if(dec===",")s=s.replace(/\./g,"").replace(",",".");else s=s.replace(/,/g,"");
+  const n=parseFloat(s);return isFinite(n)?(neg?-n:n):0}
+function normalize(grid,file,lm){
+  const look={};for(const k in HEAD)for(const h of HEAD[k])look[h]=k;
+  let hr=-1,idx=null;
+  for(let r=0;r<Math.min(grid.length,25);r++){const map={};(grid[r]||[]).forEach((c,i)=>{const k=look[norm(c)];if(k&&map[k]==null)map[k]=i});if(map.mat!=null&&map.stock!=null){hr=r;idx=map;break}}
+  if(hr<0)throw new Error("Baris judul kolom ZM68 tidak ditemukan (perlu kolom Material dan Curr UU Stock).");
+  const miss=REQ.filter(k=>idx[k]==null);if(miss.length)throw new Error("Kolom wajib tidak ada: "+miss.map(k=>LABEL[k]).join(", ")+".");
+  const tot={};SUM.forEach(k=>tot[k]=0);tot.avgPos=0;const rows=[];let n=0;
+  for(let r=hr+1;r<grid.length;r++){const g=grid[r];if(!g)continue;const mat=String(g[idx.mat]??"").trim();if(!mat)continue;n++;
+    const o={};for(const k of COLS){const i=idx[k];o[k]=TXT.has(k)?(i==null?"":String(g[i]??"").trim()):(i==null?0:toNum(g[i],grid.dec))}
+    o.mat=mat;SUM.forEach(k=>tot[k]+=o[k]);if(o.avg>0)tot.avgPos+=o.avg;
+    if(o.stock>0||o.avg>0||o.mtd>0||o.intr+o.dn+o.openpo>0||o.oosq>0||o.fcM>0)rows.push(COLS.map(k=>o[k]))}
+  if(!n)throw new Error("Tidak ada baris SKU yang terbaca di file ini.");
+  return {v:1,meta:{file,date:iso(lm?new Date(lm):new Date()),nRows:n,tot},cols:COLS,rows};
+}
+async function readFile(f){
+  const buf=await f.arrayBuffer(),u=new Uint8Array(buf.slice(0,8));
+  if(/\.(csv|txt)$/i.test(f.name))return parseCSV(new TextDecoder().decode(buf));
+  if(u[0]===0xD0&&u[1]===0xCF)throw new Error("File .xls versi lama belum didukung. Buka di Excel lalu Save As .xlsx.");
+  if(u[0]===0x50&&u[1]===0x4B)return parseXLSX(buf);
+  const t=new TextDecoder().decode(buf.slice(0,4000));if(/<html|MIME-Version/i.test(t))throw new Error("File ini export HTML dari SAP. Buka di Excel lalu Save As .xlsx.");
+  return parseCSV(new TextDecoder().decode(buf));
+}
+
+/* ---------- model ---------- */
+const TK=["s6","s5","s4","s3","s2","s1","mtd","fcM","f1","f2","f3"];
+function trendOf(t,d,day,dim){const mon=o=>{const x=new Date(d.getFullYear(),d.getMonth()+o,1);return{s:MS[x.getMonth()]+" "+String(x.getFullYear()).slice(2),l:MON[x.getMonth()]+" "+x.getFullYear()}};
+  const pj=day?t.mtd/day*dim:0,tr=[];["s6","s5","s4","s3","s2","s1"].forEach((k,i)=>tr.push({...mon(i-6),k:"act",v:t[k]}));
+  tr.push({...mon(0),k:"cur",mtd:t.mtd,proj:Math.max(0,pj-t.mtd),fc:t.fcM,v:Math.max(pj,t.fcM)});
+  ["f1","f2","f3"].forEach((k,i)=>tr.push({...mon(i+1),k:"fc",v:t[k]}));return tr}
+function compute(D,S){
+  const d=pd(D.meta.date)||new Date(),day=d.getDate(),dim=new Date(d.getFullYear(),d.getMonth()+1,0).getDate(),rem=dim-day;
+  const lo=S.low/100,ov=S.over/100,xb=S.exb/100,ci={};D.cols.forEach((k,i)=>ci[k]=i);
+  const L=[],TI=[];let inactive=0;const e=day/dim;
+  const tgt=o=>{o.pAvg=o.avg>0?o.mtd/o.avg:null;o.pFc=o.fcM>0?o.mtd/o.fcM:null;
+    o.tg=o.fcM>0?(o.pFc>=1?"ok":o.pFc>=e-1e-9?"on":"low"):(o.avg>0||o.mtd>0?"nf":"");
+    o.gapFc=o.fcM>0?Math.max(0,o.fcM-o.mtd):0;o.gapV=o.gapFc*o.nsp;o.perDay=rem>0&&o.gapFc>0?o.gapFc/rem:null;
+    o.diag=o.tg==="low"||o.tg==="nf"?(o.pAvg==null?"Belum ada riwayat sales":o.pAvg>=e?(o.tg==="low"?"Forecast di atas tren rata-rata":"Di atas rata-rata"):(o.tg==="low"?"Di bawah forecast & rata-rata":"Di bawah rata-rata")):"";
+    o.fu=o.tg==="low"?(o.st==="OOS"||o.st==="Inactive"?"Operation (stok)":o.st==="Low"?"Sales + cek stok":"Sales"):""};
+  for(const r of D.rows){const o={};for(const k of COLS){const i=ci[k];o[k]=i==null?(TXT.has(k)?"":0):r[i];if(!TXT.has(k)&&!ok(o[k]))o[k]=0}
+    o.abc=String(o.abc||"").trim().toUpperCase()||"–";
+    const demand=o.avg>0||o.mtd>0;o.base=o.avg>0?o.avg:(o.mtd>0?o.mtd/day*dim:0);o.baseRR=!(o.avg>0)&&o.mtd>0;
+    o.stdMiss=!(o.stdT>0);o.std=o.stdMiss?S.stdDef:o.stdT;
+    o.T=o.base>0?o.stock/o.base:null;o.ratio=o.T!=null?o.T/o.std:null;
+    let st;if(o.stock<=0)st=demand?"OOS":"Inactive";else if(!demand)st="NoMove";else st=o.ratio<lo?"Low":o.ratio>ov?"Over":"Normal";
+    if(st==="Inactive"){inactive++;if(o.fcM>0){o.st=st;o.demand=false;o.inc=o.intr+o.dn+o.openpo;o.T=null;o.ratio=null;o.cover=null;o.rekom=0;o.exq=0;o.exv=0;o.val=0;tgt(o);TI.push(o)}continue}
+    o.st=st;o.demand=demand;o.inc=o.intr+o.dn+o.openpo;o.proj=o.stock+o.inc;o.target=o.std*o.base;
+    const sh=st==="OOS"||st==="Low";o.rekom=sh?Math.max(0,Math.ceil(o.target-o.proj-1e-9)):0;
+    o.ket=sh?(o.inc<=0?"Perlu order segera":o.rekom>0?"Incoming belum cukup":"Tertutup incoming"):"";
+    o.ppu=o.stock>0&&o.pal>0?o.pal/o.stock:0;
+    o.exq=st==="Over"?Math.max(0,o.stock-o.target*xb):st==="NoMove"?o.stock:0;
+    o.tnq=st==="Over"?Math.max(0,Math.ceil(o.stock-o.target*ov)):st==="NoMove"?o.stock:0;
+    o.exv=o.exq*o.nsp;o.exp=o.exq*o.ppu;o.val=o.stock*o.nsp;
+    o.cover=demand&&o.base>0&&o.stock>0?o.stock/(o.base/dim):null;o.runOut=o.cover!=null&&o.cover<rem;
+    tgt(o);L.push(o)}
+  const a={cnt:{OOS:0,Low:0,Normal:0,Over:0,NoMove:0},dem:0,av:0,oosNoInc:0,exV:0,exP:0,exQ:0,tnQ:0,ordSku:0,ordQty:0,ordVal:0,now:0,withInc:0,cov:0,runOut:0,runOutNoInc:0,lost:0,stockV:0,pal:0,inc:{intr:0,dn:0,openpo:0}};
+  const abc={};
+  for(const o of L){a.cnt[o.st]++;if(o.demand){a.dem++;if(o.stock>0)a.av++}
+    (abc[o.abc]||(abc[o.abc]={OOS:0,Low:0,Normal:0,Over:0,NoMove:0,n:0,exV:0,exP:0}))[o.st]++;abc[o.abc].n++;
+    if(o.st==="OOS"&&o.inc<=0)a.oosNoInc++;
+    if(o.st==="Over"||o.st==="NoMove"){a.exV+=o.exv;a.exP+=o.exp;a.exQ+=o.exq;a.tnQ+=o.tnq;abc[o.abc].exV+=o.exv;abc[o.abc].exP+=o.exp}
+    if(o.st==="OOS"||o.st==="Low"){if(o.rekom>0){a.ordSku++;a.ordQty+=o.rekom;a.ordVal+=o.rekom*o.nsp}if(o.ket==="Perlu order segera")a.now++;else if(o.ket==="Incoming belum cukup")a.withInc++;else a.cov++;
+      a.inc.intr+=o.intr;a.inc.dn+=o.dn;a.inc.openpo+=o.openpo}
+    if(o.runOut){a.runOut++;if(o.inc<=0)a.runOutNoInc++}
+    a.lost+=o.oosq;a.stockV+=o.val;a.pal+=o.pal}
+  a.avail=a.dem?a.av/a.dem:null;a.sh=a.cnt.OOS+a.cnt.Low;a.ex=a.cnt.Over+a.cnt.NoMove;
+  const t=D.meta.tot;a.mtd=t.mtd;a.avgSum=t.avgPos;a.fcM=t.fcM;a.proj=day?t.mtd/day*dim:0;a.lostPct=t.mtd+a.lost>0?a.lost/(t.mtd+a.lost):null;
+  const trend=trendOf(t,d,day,dim);
+  return {L,TL:[...L.filter(o=>o.tg),...TI],a,abc,inactive,d,day,dim,rem,trend,mon0:MON[d.getMonth()],nRows:D.meta.nRows};
+}
+
+/* ---------- tables ---------- */
+const TS={};
+function tbl(id,cols,rows,o={}){const st=TS[id]||(TS[id]={k:o.k??null,d:o.d??-1,lim:o.lim??25,step:o.step??100});st.cols=cols;st.rows=rows;st.ex=o.ex;st.empty=o.empty;st.name=o.name;drawT(id)}
+function sortedRows(st){let r=st.rows;if(st.k){const c=st.cols.find(c=>c.k===st.k);if(c){const v=c.s||(x=>x[c.k]);r=r.slice().sort((a,b)=>{const x=v(a),y=v(b);if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return-1;return(typeof x==="string"?x.localeCompare(y):x-y)*st.d})}}return r}
+function drawT(id){const st=TS[id],host=document.getElementById(id);if(!host)return;const r=sortedRows(st),sh=r.slice(0,st.lim);
+  host.innerHTML=r.length?`<div class="scroll tall"><table class="tbl"><thead><tr>${st.cols.map(c=>`<th class="${c.n?"n":""} ${c.cls||""}" aria-sort="${st.k===c.k?(st.d>0?"ascending":"descending"):"none"}"><button type="button" data-k="${c.k}">${c.l}${st.k===c.k?(st.d>0?" ↑":" ↓"):""}</button></th>`).join("")}</tr></thead><tbody>${sh.map(x=>`<tr>${st.cols.map(c=>`<td class="${c.n?"n":""} ${c.cls||""}">${c.h?c.h(x):esc(c.f?c.f(x[c.k],x):x[c.k])}</td>`).join("")}</tr>`).join("")}</tbody></table></div><div class="tfoot"><span>Menampilkan ${fI(sh.length)} dari ${fI(r.length)} SKU</span>${r.length>sh.length?`<button class="btn sec more" type="button">Tampilkan ${fI(Math.min(st.step,r.length-sh.length))} lagi</button>`:""}</div>`:`<p class="empty">${esc(st.empty||"Tidak ada SKU.")}</p>`}
+document.addEventListener("click",e=>{const b=e.target.closest(".tbl th button[data-k]");const host=e.target.closest("[id]");
+  if(b){const id=b.closest(".scroll").parentElement.id,st=TS[id];if(!st)return;const k=b.dataset.k;if(st.k===k)st.d=-st.d;else{st.k=k;st.d=(st.cols.find(c=>c.k===k)||{}).n?-1:1}drawT(id);return}
+  const mb=e.target.closest(".more");if(mb){const id=mb.closest(".tfoot").parentElement.id,st=TS[id];if(st){st.lim+=st.step;drawT(id)}}});
+const C={
+  sku:{k:"desc",l:"SKU",cls:"sku",h:x=>`<b>${esc(x.desc)}</b><span>${esc(x.mat)}</span>`},
+  abc:{k:"abc",l:"ABC"},
+  st:{k:"st",l:"Status",h:x=>chip(x.st),s:x=>x.st==="Inactive"?9:ORDER.indexOf(x.st)},
+  stock:{k:"stock",l:"Stok",n:1,f:fI},
+  avg:{k:"avg",l:"Avg sales",n:1,f:(v,x)=>x.baseRR?fI(x.base)+"†":fI(v),s:x=>x.base},
+  mtd:{k:"mtd",l:"Sales MTD",n:1,f:fI},
+  T:{k:"T",l:"T (bln)",n:1,f:f2},
+  std:{k:"std",l:"Std T",n:1,f:(v,x)=>f2(v)+(x.stdMiss?"*":"")},
+  ratio:{k:"ratio",l:"% std",n:1,f:v=>fP(v,0)},
+  inc:{k:"inc",l:"Incoming",n:1,h:x=>x.inc>0?`<span${tipA([x.desc,"Intransit: "+fI(x.intr),"DN: "+fI(x.dn),"Open PO/STR: "+fI(x.openpo)])}>${fI(x.inc)}</span>`:"0"},
+  proj:{k:"proj",l:"Stok proyeksi",n:1,f:fI},
+  rekom:{k:"rekom",l:"Rekom. order",n:1,h:x=>x.rekom>0?`<strong>${fI(x.rekom)}</strong>`:"0"},
+  ket:{k:"ket",l:"Keterangan",h:x=>x.ket==="Perlu order segera"?`<span class="k-now">${x.ket}</span>`:esc(x.ket)},
+  cover:{k:"cover",l:"Cover (hari)",n:1,f:v=>v==null?"–":fI(v)},
+  exq:{k:"exq",l:"Excess qty",n:1,f:fI},
+  exv:{k:"exv",l:"Nilai excess",n:1,f:fRp},
+  exp:{k:"exp",l:"Excess pallet",n:1,f:f2},
+  tnq:{k:"tnq",l:"Target jual",n:1,f:fI},
+  oosq:{k:"oosq",l:"OOS qty",n:1,f:fI},
+  oosp:{k:"oosp",l:"% OOS",n:1,f:v=>ok(v)?nf1.format(v)+"%":"–"},
+  val:{k:"val",l:"Nilai stok",n:1,f:fRp},
+  avgP:{k:"avg",l:"Avg sales",n:1,f:v=>fI(Math.max(0,v))},
+  pAvg:{k:"pAvg",l:"% MTD vs avg",n:1,h:x=>x.pAvg==null?"–":`<span class="${x.pAvg>=M.day/M.dim?"pa-hi":"pa-lo"}">${fP(x.pAvg,0)}</span>`},
+  pFc:{k:"pFc",l:"% MTD vs forecast",n:1,h:x=>x.pFc==null?"–":`<span class="pb"><span class="pbt"><i style="width:${Math.min(100,x.pFc*100)}%;background:${TG[x.tg][1]}"></i><b style="left:${M.day/M.dim*100}%"></b></span>${fP(x.pFc,0)}</span>`},
+  tg:{k:"tg",l:"Kategori",h:x=>tgChip(x.tg),s:x=>["low","on","ok","nf"].indexOf(x.tg)},
+  gapFc:{k:"gapFc",l:"Sisa ke forecast",n:1,f:v=>fI(v)},
+  perDay:{k:"perDay",l:"Perlu / hari",n:1,f:v=>v==null?"–":fI(Math.ceil(v))},
+  gapV:{k:"gapV",l:"Sisa (Rp)",n:1,f:v=>v>0?fRp(v):"–"},
+  diag:{k:"diag",l:"Diagnosa"},
+  fu:{k:"fu",l:"Follow up",h:x=>x.fu?`<span class="${x.fu.startsWith("Operation")?"k-now":"fu-s"}">${esc(x.fu)}</span>`:""}
+};
+const tgChip=k=>k?`<span class="chip"><i style="background:${TG[k][1]}"></i>${TG[k][0]}</span>`:"";
+const fcCol=()=>({k:"fcM",l:"Forecast "+MS[M.d.getMonth()],n:1,f:fI});
+const EX={
+  base:[["Material",x=>x.mat],["Deskripsi",x=>x.desc],["ABC",x=>x.abc],["Status",x=>SN[x.st]]],
+  stock:[["Stok",x=>x.stock],["Avg sales",x=>Math.round(x.base)],["Sales MTD",x=>x.mtd],["T (bln)",x=>x.T==null?"":+x.T.toFixed(2)],["Std T",x=>x.std],["% std",x=>x.ratio==null?"":Math.round(x.ratio*100)]],
+  ord:[["Intransit",x=>x.intr],["DN",x=>x.dn],["Open PO/STR",x=>x.openpo],["Stok proyeksi",x=>x.proj],["Rekom. order",x=>x.rekom],["Keterangan",x=>x.ket],["Cover (hari)",x=>x.cover==null?"":Math.round(x.cover)]],
+  ex:[["Excess qty",x=>Math.round(x.exq)],["Nilai excess (Rp)",x=>Math.round(x.exv)],["Excess pallet",x=>+x.exp.toFixed(2)],["Target jual",x=>x.tnq],["Forecast bulan ini",x=>x.fcM]],
+  lost:[["OOS qty",x=>x.oosq],["% OOS",x=>x.oosp],["Incoming",x=>x.inc]],
+  tg:[["Material",x=>x.mat],["Deskripsi",x=>x.desc],["ABC",x=>x.abc],["Status stok",x=>SN[x.st]],["Sales MTD",x=>x.mtd],["Avg sales",x=>Math.round(Math.max(0,x.avg))],["% MTD vs avg",x=>x.pAvg==null?"":+(x.pAvg*100).toFixed(1)],["Forecast bulan ini",x=>x.fcM],["% MTD vs forecast",x=>x.pFc==null?"":+(x.pFc*100).toFixed(1)],["Kategori",x=>x.tg?TG[x.tg][0]:""],["Sisa ke forecast",x=>Math.round(x.gapFc)],["Perlu per hari",x=>x.perDay==null?"":Math.ceil(x.perDay)],["Sisa (Rp)",x=>Math.round(x.gapV)],["Diagnosa",x=>x.diag],["Follow up",x=>x.fu],["Stok",x=>x.stock],["Incoming",x=>x.inc]],
+  all:[["% MTD vs avg",x=>x.pAvg==null?"":+(x.pAvg*100).toFixed(1)],["% MTD vs forecast",x=>x.pFc==null?"":+(x.pFc*100).toFixed(1)],["Kategori target",x=>x.tg?TG[x.tg][0]:""],["NSP",x=>x.nsp],["Nilai stok (Rp)",x=>Math.round(x.val)],["Intransit",x=>x.intr],["DN",x=>x.dn],["Open PO/STR",x=>x.openpo],["Rekom. order",x=>x.rekom],["Excess qty",x=>Math.round(x.exq)],["Nilai excess (Rp)",x=>Math.round(x.exv)],["Excess pallet",x=>+x.exp.toFixed(2)],["OOS qty",x=>x.oosq],["Forecast bulan ini",x=>x.fcM]]
+};
+
+/* ---------- render ---------- */
+function setText(id,t){const e=document.getElementById(id);if(e)e.textContent=t}
+function render(){
+  M=compute(D,S);const a=M.a,c=a.cnt;
+  const below=a.avail!=null&&a.avail*100<S.tgt;
+  setText("h-title",`Ketersediaan stok ${fP(a.avail)}, ${below?"di bawah":"memenuhi"} target ${nf1.format(S.tgt).replace(",0","")}%`);
+  setText("h-lead",`${fI(c.OOS)} SKU out of stock (${fI(a.oosNoInc)} belum ada PO/intransit), ${fI(c.Low)} SKU low stock, dan ${fI(a.ex)} SKU over stock/no movement dengan excess ${fRp(a.exV)} (${f1(a.exP)} pallet).`);
+  $("#h-src").innerHTML=`S&amp;OP · Data <b>${esc(fD(M.d))}</b> · ${esc(D.meta.file)} · ${fI(M.L.length)} SKU aktif dari ${fI(M.nRows)}`;
+  $("#h-err").hidden=true;$("#main").hidden=false;$("#empty").hidden=true;$(".tabs").hidden=false;
+  rRing();rDemand();rSupply();rExcess();rReview();rData();rDefs();
+  hist();ro.disconnect();ro.observe($("#d-fig"));drawDemand();
+  fillSettings();
+}
+function rRing(){const a=M.a,c=a.cnt;
+  const tile=(s,v,sub)=>`<a class="kpi" href="#data" data-f="${s}"><div class="v">${fI(v)}</div><div class="l">${sw(s)}${SL[s]}</div><div class="s">${sub}</div></a>`;
+  $("#kpis").innerHTML=`<div class="kpi fill w2"><div class="v">${fP(a.avail)}</div><div class="l">Stock availability</div><div class="s">${fI(a.av)} dari ${fI(a.dem)} SKU ber-demand · target ${esc(S.tgt)}%</div><div class="meter" role="img" aria-label="Availability ${fP(a.avail)} terhadap target ${esc(S.tgt)}%"><i style="width:${Math.min(100,(a.avail||0)*100)}%"></i><b style="left:${Math.min(100,S.tgt)}%"></b></div></div>`+
+    tile("OOS",c.OOS,`${fI(a.oosNoInc)} tanpa PO/intransit`)+tile("Low",c.Low,`T &lt; ${esc(S.low)}% standar`)+tile("Over",c.Over,`T &gt; ${esc(S.over)}% standar`)+tile("NoMove",c.NoMove,"ada stok, belum ada sales")+
+    `<a class="kpi fill w2" href="#excess"><div class="v">${fRp(a.exV)}</div><div class="l">Nilai excess stock</div><div class="s">${f1(a.exP)} pallet (Over + No Move) · total stok ${fRp(a.stockV)}</div></a>`;
+  $("#strip").innerHTML=[["Sales MTD (pcs)",fI(a.mtd),`${M.day} dari ${M.dim} hari`],["Avg sales / bln",fS(a.avgSum),"rata-rata 6 bulan"],["Forecast "+M.mon0,fS(a.fcM),`MTD = ${fP(a.fcM?a.mtd/a.fcM:null,0)} forecast`],["Habis < akhir bulan",fI(a.runOut)+" SKU",`cover < ${M.rem} hari sisa · ${fI(a.runOutNoInc)} tanpa incoming`]].map(x=>`<div><div class="v">${x[1]}</div><div class="l">${esc(x[0])}</div><div class="s">${esc(x[2])}</div></div>`).join("");
+  const top3=M.L.filter(o=>o.abc==="A"&&o.st!=="Normal").length;
+  $("#flow").innerHTML=`<a class="fb" href="#data"><b>Operation update ZM68 tiap pagi</b><span>Dashboard memberi status tiap SKU: OOS · Low · Normal · Over · No Movement</span><em>${fI(M.L.length)} SKU aktif · data ${esc(fDs(D.meta.date))}</em></a><div class="fork" aria-hidden="true"></div>
+    <div class="lanes"><div class="lane"><a class="lh" href="#excess">${sw("Over")}${sw("NoMove")} Over stock · No movement <span>(${fI(a.ex)} SKU)</span></a>
+      <a class="fb" href="#excess"><b>Operation → Sales</b><span>Kirim daftar SKU over + Sales MTD, average &amp; forecast</span><em>${fI(a.ex)} SKU · ${fRp(a.exV)}</em></a>
+      <a class="fb" href="#excess"><b>Sales dorong penjualan</b><span>SKU over jadi prioritas kunjungan &amp; penawaran outlet</span><em>Target jual ke ≤${esc(S.over)}%: ${fS(a.tnQ)} pcs</em></a>
+      <a class="fb" href="#review"><b>Kontrol</b><span>T kembali ≤ ${esc(S.over)}% standar, excess pallet turun</span><em>Excess ${f1(a.exP)} pallet</em></a></div>
+    <div class="lane"><a class="lh" href="#supply">${sw("OOS")}${sw("Low")} Out of stock · Low stock <span>(${fI(a.sh)} SKU)</span></a>
+      <a class="fb" href="#supply" data-of="now"><b>Cek incoming</b><span>Tidak ada PO / intransit → status “Perlu order segera”</span><em>${fI(a.now)} SKU perlu order segera</em></a>
+      <a class="fb" href="#supply" data-of="ord"><b>Operation order hari ini</b><span>Rekom. = Std T × average sales − stok proyeksi</span><em>${fI(a.ordSku)} SKU · ${fI(a.ordQty)} pcs</em></a>
+      <a class="fb" href="#supply" data-of="inc"><b>Operation → Sales</b><span>Info estimasi kedatangan untuk follow-up outlet</span><em>${fI(a.withInc+a.cov)} SKU sudah ada incoming</em></a></div></div>
+    <div class="merge" aria-hidden="true"></div>
+    <a class="fb navy" href="#review"><b>Review mingguan Sales–Operation</b><span>SKU prioritas = Sales MTD &amp; average tertinggi (kelas A)</span><em>${fI(top3)} SKU kelas A di luar normal</em></a>`;
+  $("#abc-lg").innerHTML=ORDER.map(s=>`<span>${sw(s)}${SN[s]} <b>${fI(a.cnt[s])}</b></span>`).join("");
+  const keys=Object.keys(M.abc).sort((x,y)=>(x==="–")-(y==="–")||x.localeCompare(y));
+  const all={n:M.L.length};ORDER.forEach(s=>all[s]=a.cnt[s]);
+  $("#abc").innerHTML=[...keys.map(k=>[k==="–"?"Tanpa kelas":"Kelas "+k,M.abc[k]]),["Semua",all]].map(([lab,g])=>`<div class="sbar"><div class="lab"><b>${esc(lab)}</b><small>${fI(g.n)} SKU</small></div><div class="track">${ORDER.filter(s=>g[s]>0).map(s=>{const w=g[s]/g.n*100;return`<div class="seg bg-${s} k-${s}" style="flex:${g[s]} 1 0"${tipA([lab+" · "+SL[s],fI(g[s])+" SKU ("+fP(g[s]/g.n)+")"])}>${w>=7?fI(g[s]):""}</div>`}).join("")}</div></div>`).join("");
+  const RK=o=>({A:0,B:1,C:2}[o.abc]??3);
+  const pr=M.L.filter(o=>o.ket==="Perlu order segera").sort((x,y)=>RK(x)-RK(y)||(x.st==="OOS"?0:1)-(y.st==="OOS"?0:1)||y.base-x.base).slice(0,5);
+  $("#pri").innerHTML=pr.length?pr.map(o=>`<li><span class="nm">${esc(o.desc)}<small>${esc(o.mat)} · kelas ${esc(o.abc)} · ${SL[o.st]} · avg ${fI(o.base)}/bln</small></span><span class="q">${fI(o.rekom)}<small>pcs rekom.</small></span></li>`).join(""):`<li><span class="nm">Tidak ada SKU OOS/Low tanpa incoming.</span></li>`;
+  $("#rules").innerHTML=[["OOS","stok ≤ 0 dan ada average / Sales MTD"],["Low",`T < ${S.low}% Std T`],["Normal",`T ${S.low}–${S.over}% Std T`],["Over",`T > ${S.over}% Std T`],["NoMove","ada stok, tanpa average & Sales MTD"]].map(([s,t])=>`<div class="rule"><span class="tag bg-${s} k-${s}">${SN[s]}</span><span>${esc(t)}</span></div>`).join("");
+}
+function rDemand(){const a=M.a,el=M.day/M.dim,ach=a.fcM?a.mtd/a.fcM:null,gap=a.fcM?a.proj/a.fcM-1:null;
+  setText("d-title",`Sales MTD ${fS(a.mtd)} pcs, ${fP(ach,0)} dari forecast ${M.mon0}`);
+  setText("d-lead",`Waktu berjalan ${M.day} dari ${M.dim} hari (${fP(el,0)}). Proyeksi run-rate ${fS(a.proj)} pcs, ${gap==null?"":gap>=0?"di atas":"di bawah"} forecast ${fS(a.fcM)} pcs${gap==null?"":" ("+(gap>=0?"+":"−")+fP(Math.abs(gap),0)+")"}.`);
+  $("#d-kpi").innerHTML=[["Sales MTD (pcs)",fI(a.mtd),`${fP(ach,0)} vs forecast · ${fP(a.avgSum?a.mtd/a.avgSum:null,0)} vs avg`],["Proyeksi bulan ini",fS(a.proj),"run-rate MTD"],["Forecast "+M.mon0,fS(a.fcM),"pcs"],["Avg sales / bln",fS(a.avgSum),"6 bulan terakhir"],["Lost sales MTD",fS(a.lost)+" pcs",`${fP(a.lostPct)} dari demand`]].map(x=>`<div><div class="v">${x[1]}</div><div class="l">${esc(x[0])}</div><div class="s">${esc(x[2])}</div></div>`).join("");
+  $("#d-lg").innerHTML=`<span><i class="sw" style="background:var(--blue)"></i>Aktual</span><span><i class="sw" style="background:var(--mtd)"></i>Sales MTD</span><span><i class="sw" style="background:repeating-linear-gradient(45deg,var(--blue) 0 2px,var(--sky) 2px 5px)"></i>Proyeksi run-rate</span><span><i class="sw" style="background:var(--sky);outline:1.5px dashed var(--blue);outline-offset:-1.5px"></i>Forecast</span><span><i class="sw" style="height:3px;width:14px;background:var(--OOS)"></i>Forecast bulan ini</span>`;
+  const top=M.L.filter(o=>o.fcM>0).sort((x,y)=>y.fcM-x.fcM).slice(0,15);
+  $("#d-ach").innerHTML=top.length?top.map(o=>{const r=o.mtd/o.fcM;return`<div class="hb pick" data-sku="${esc(o.mat)}"${tipA([o.desc,"Sales MTD "+fI(o.mtd)+" / forecast "+fI(o.fcM),"Pencapaian "+fP(r,0)+" · waktu berjalan "+fP(el,0),"Status "+SN[o.st]])}><span class="nm">${esc(o.desc)}</span><span class="bt"><i style="width:${Math.min(100,r/1.3*100)}%;background:${r>=el?"var(--blue)":"color-mix(in srgb,var(--blue) 45%,var(--panel))"}"></i><b style="left:${el/1.3*100}%"></b></span><span class="vv">${fP(r,0)}</span></div>`}).join("")+`<p class="empty" style="font-size:13px;padding:8px 0 0">Skala bar sampai 130%. Bar pucat = pencapaian di bawah waktu berjalan.</p>`:`<p class="empty">Kolom Forecast M tidak tersedia.</p>`;
+  slRender();rTarget();
+  tbl("t-lost",[C.sku,C.abc,C.st,C.oosq,C.oosp,C.mtd,C.stock,C.inc,fcCol()],M.L.filter(o=>o.oosq>0),{k:"oosq",d:-1,lim:15,ex:[...EX.base,...EX.lost,["Sales MTD",x=>x.mtd],["Stok",x=>x.stock]],name:"Lost sales",empty:"Tidak ada OOS qty tercatat."});
+}
+let TGF="low",TFU="all",TABC="all";
+function rTarget(){const e=M.day/M.dim,c={ok:[],on:[],low:[],nf:[]};M.TL.forEach(o=>c[o.tg]&&c[o.tg].push(o));
+  const nFc=c.ok.length+c.on.length+c.low.length,sm=(r,k)=>r.reduce((s,o)=>s+o[k],0),fuS=c.low.filter(o=>o.fu.startsWith("Sales")).length,fuO=c.low.length-fuS;
+  setText("tg-p",`${fI(c.ok.length+c.on.length)} dari ${fI(nFc)} SKU ber-forecast sesuai target (Sales MTD ≥ ${fP(e,0)} forecast, pro-rata ${M.day}/${M.dim} hari). ${fI(c.low.length)} SKU di bawah target: ${fI(fuS)} follow up Sales, ${fI(fuO)} terkendala stok (OOS).`);
+  const sub={ok:"MTD ≥ 100% forecast",on:`MTD ≥ ${fP(e,0)} forecast (pro-rata)`,low:`< ${fP(e,0)} · sisa ${fS(sm(c.low,"gapFc"))} pcs (${fRp(sm(c.low,"gapV"))})`,nf:`ada sales, forecast 0 · ${fI(c.nf.filter(o=>o.pAvg!=null&&o.pAvg>=e).length)} di atas rata-rata`};
+  $("#tg-cards").innerHTML=Object.keys(TG).map(k=>`<button class="tgc" type="button" data-tgf="${k}" aria-pressed="${TGF===k}"><span class="h"><i style="background:${TG[k][1]}"></i>${TG[k][0]}</span><b>${fI(c[k].length)} SKU</b><span class="s">${esc(sub[k])}</span></button>`).join("");
+  drawTg()}
+function drawTg(){const base=M.TL.filter(o=>(TGF==="all"||o.tg===TGF)&&(TABC==="all"||o.abc===TABC));
+  const fs=base.filter(o=>o.fu.startsWith("Sales")),fo=base.filter(o=>o.fu==="Operation (stok)");
+  const rows=TFU==="s"?fs:TFU==="o"?fo:base;
+  $("#tg-f").innerHTML=(TGF==="low"?[["all","Semua follow up",base.length],["s","Follow up Sales",fs.length],["o","Kendala stok (Operation)",fo.length]].map(([k,l,n])=>`<button class="fchip" type="button" data-tfu="${k}" aria-pressed="${TFU===k}">${l}<span class="n">${fI(n)}</span></button>`).join(""):`<span class="sl-hint">Klik kartu yang aktif sekali lagi untuk menampilkan semua kategori.</span>`)+
+    `<span style="flex:1"></span>`+[["all","Semua kelas"],["A","Kelas A"],["B","Kelas B"],["C","Kelas C"]].map(([k,l])=>`<button class="fchip sm" type="button" data-tabc="${k}" aria-pressed="${TABC===k}">${l}</button>`).join("");
+  tbl("t-tg",[C.sku,C.abc,C.pFc,C.pAvg,C.fu,C.mtd,fcCol(),C.avgP,C.gapFc,C.perDay,C.gapV,C.tg,C.st,C.diag],rows,{k:"gapV",d:-1,lim:25,ex:EX.tg,name:"Target vs forecast",empty:"Tidak ada SKU di filter ini."})}
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-tgf]");if(t){const k=t.dataset.tgf;TGF=TGF===k?"all":k;TFU="all";rTarget();return}
+  const f=e.target.closest("[data-tfu]");if(f){TFU=f.dataset.tfu;drawTg();return}
+  const a=e.target.closest("[data-tabc]");if(a){TABC=a.dataset.tabc;drawTg()}});
+let OF="all",XF="all";
+function rSupply(){const a=M.a;
+  setText("s-title",`${fI(a.sh)} SKU di bawah standar, ${fI(a.now)} perlu order segera`);
+  setText("s-lead",`Rekomendasi order hari ini ${fI(a.ordSku)} SKU, ${fI(a.ordQty)} pcs (≈${fRp(a.ordVal)}). ${fI(a.withInc+a.cov)} SKU OOS/Low sudah ada incoming: kirim info kedatangan ke Sales.`);
+  $("#s-kpi").innerHTML=[["Out of stock",fI(a.cnt.OOS),`${fI(a.oosNoInc)} tanpa PO/intransit`],["Low stock",fI(a.cnt.Low),`T < ${S.low}% standar`],["Rekom. order hari ini",fI(a.ordQty)+" pcs",`${fI(a.ordSku)} SKU · ≈${fRp(a.ordVal)}`],["Habis < akhir bulan",fI(a.runOut)+" SKU",`${fI(a.runOutNoInc)} tanpa incoming`]].map(x=>`<div><div class="v">${x[1]}</div><div class="l">${esc(x[0])}</div><div class="s">${esc(x[2])}</div></div>`).join("");
+  const bins=[[0,.25,"< 25%"],[.25,.5,"25–50%"],[.5,.75,"50–75%"],[.75,1,"75–100%"],[1,1.2,"100–120%"],[1.2,1.5,"120–150%"],[1.5,2,"150–200%"],[2,3,"200–300%"],[3,5,"300–500%"],[5,Infinity,"> 500%"]];
+  const B=[{l:"OOS (stok 0)",c:{OOS:a.cnt.OOS}},...bins.map(b=>({l:b[2],c:{}}))];
+  for(const o of M.L){if(o.st==="OOS"||o.st==="NoMove"||o.ratio==null)continue;const i=bins.findIndex(b=>o.ratio>=b[0]&&o.ratio<b[1]);const t=B[i+1].c;t[o.st]=(t[o.st]||0)+1}
+  const mx=Math.max(1,...B.map(b=>Object.values(b.c).reduce((s,v)=>s+v,0)));
+  $("#cov-lg").innerHTML=["OOS","Low","Normal","Over"].map(s=>`<span>${sw(s)}${SN[s]}</span>`).join("");
+  $("#cov").innerHTML=B.map(b=>{const n=Object.values(b.c).reduce((s,v)=>s+v,0);return`<div class="cov"${tipA([b.l+" dari Std T",fI(n)+" SKU",...ORDER.filter(s=>b.c[s]).map(s=>SN[s]+": "+fI(b.c[s]))])}><span>${esc(b.l)}</span><span class="bt">${ORDER.filter(s=>b.c[s]).map(s=>`<i class="bg-${s}" style="width:${b.c[s]/mx*100}%"></i>`).join("")}</span><span class="vv">${fI(n)}</span></div>`}).join("");
+  const it=[["Intransit",a.inc.intr],["DN",a.inc.dn],["Open PO/STR",a.inc.openpo]],im=Math.max(1,...it.map(x=>x[1]));
+  $("#inc").innerHTML=it.map(([l,v])=>`<div class="hb k8"${tipA([l,fI(v)+" pcs untuk SKU OOS & Low"])}><span class="nm">${l}</span><span class="bt"><i style="width:${v/im*100}%;background:var(--blue)"></i></span><span class="vv">${fS(v)}</span></div>`).join("");
+  const om=[["Perlu order segera",a.now,"var(--OOS)"],["Incoming belum cukup",a.withInc,"var(--Low)"],["Tertutup incoming",a.cov,"var(--Normal)"]],ot=Math.max(1,a.sh);
+  $("#ordmix").innerHTML=om.map(([l,v,c])=>`<div class="hb k11"${tipA([l,fI(v)+" SKU ("+fP(v/ot,0)+")"])}><span class="nm">${l}</span><span class="bt"><i style="width:${v/ot*100}%;background:${c}"></i></span><span class="vv">${fI(v)} SKU</span></div>`).join("");
+  const oa={};for(const o of M.L)if(o.rekom>0){const g=oa[o.abc]||(oa[o.abc]={q:0,n:0,v:0});g.q+=o.rekom;g.n++;g.v+=o.rekom*o.nsp}
+  const ok2=Object.keys(oa).sort((x,y)=>(x==="–")-(y==="–")||x.localeCompare(y)),oq=Math.max(1,...ok2.map(k=>oa[k].q));
+  $("#ordabc").innerHTML=ok2.length?ok2.map(k=>`<div class="hb k6"${tipA([k==="–"?"Tanpa kelas":"Kelas "+k,fI(oa[k].q)+" pcs · "+fI(oa[k].n)+" SKU","≈"+fRp(oa[k].v)])}><span class="nm">${k==="–"?"Tanpa kelas":"Kelas "+esc(k)}</span><span class="bt"><i style="width:${oa[k].q/oq*100}%;background:var(--blue)"></i></span><span class="vv">${fS(oa[k].q)}<br><small style="font-weight:500;color:var(--muted)">${fI(oa[k].n)} SKU</small></span></div>`).join(""):`<p class="empty">Tidak ada rekomendasi order.</p>`;
+  drawOrd();
+}
+function drawOrd(){const base=M.L.filter(o=>o.st==="OOS"||o.st==="Low"||o.runOut);
+  const F={all:["Semua",base],now:["Perlu order segera",base.filter(o=>o.ket==="Perlu order segera")],ord:["Ada rekom. order",base.filter(o=>o.rekom>0)],inc:["Sudah ada incoming",base.filter(o=>(o.st==="OOS"||o.st==="Low")&&o.inc>0)],run:["Habis < akhir bulan",base.filter(o=>o.runOut)]};
+  if(!F[OF])OF="all";
+  $("#o-f").innerHTML=Object.entries(F).map(([k,[l,r]])=>`<button class="fchip" type="button" data-of="${k}" aria-pressed="${OF===k}">${l}<span class="n">${fI(r.length)}</span></button>`).join("");
+  const pr=o=>(o.st==="OOS"?0:o.st==="Low"?1:2)*10+(o.inc<=0?0:1)*5+({A:0,B:1,C:2}[o.abc]??3);
+  const rows=F[OF][1].slice().sort((x,y)=>pr(x)-pr(y)||y.base-x.base);
+  tbl("t-ord",[C.sku,C.abc,C.st,C.stock,C.avg,C.T,C.std,C.inc,C.proj,C.rekom,C.ket,C.cover],rows,{k:null,lim:25,ex:[...EX.base,...EX.stock,...EX.ord],name:"Order hari ini",empty:"Tidak ada SKU di filter ini."});
+}
+function rExcess(){const a=M.a,ex=M.L.filter(o=>o.st==="Over"||o.st==="NoMove").sort((x,y)=>y.exv-x.exv),top=ex.slice(0,10),share=a.exV?top.reduce((s,o)=>s+o.exv,0)/a.exV:null;
+  setText("x-title",`Excess stock ${fRp(a.exV)}, setara ${f1(a.exP)} pallet`);
+  setText("x-lead",`${fI(a.cnt.Over)} SKU over stock dan ${fI(a.cnt.NoMove)} SKU no movement. 10 SKU teratas menyumbang ${fP(share,0)} nilai excess. Target jual agar T kembali ≤ ${S.over}% standar: ${fI(a.tnQ)} pcs.`);
+  const ov=ex.filter(o=>o.st==="Over"),nm=ex.filter(o=>o.st==="NoMove"),sv=r=>r.reduce((s,o)=>s+o.exv,0);
+  $("#x-kpi").innerHTML=[["Over stock",fI(a.cnt.Over)+" SKU",fRp(sv(ov))],["No movement",fI(a.cnt.NoMove)+" SKU",fRp(sv(nm))],["Nilai excess",fRp(a.exV),`basis > ${S.exb}% Std T`],["Excess pallet",f1(a.exP),"Over + No Move"],["Target jual",fS(a.tnQ)+" pcs",`agar T ≤ ${S.over}% standar`]].map(x=>`<div><div class="v">${x[1]}</div><div class="l">${esc(x[0])}</div><div class="s">${esc(x[2])}</div></div>`).join("");
+  $("#x-lg").innerHTML=`<span>${sw("Over")}Over stock</span><span>${sw("NoMove")}No movement</span>`;
+  const mx=Math.max(1,...top.map(o=>o.exv));
+  $("#x-top").innerHTML=top.length?top.map(o=>`<div class="hb"${tipA([o.desc,o.mat+" · kelas "+o.abc+" · "+SN[o.st],"Excess "+fI(o.exq)+" pcs · "+f2(o.exp)+" pallet","Nilai "+fRp(o.exv)+" · T "+f2(o.T)+" bln vs std "+f2(o.std)])}><span class="nm">${esc(o.desc)}</span><span class="bt"><i class="bg-${o.st}" style="width:${o.exv/mx*100}%"></i></span><span class="vv">${fRp(o.exv)}</span></div>`).join(""):`<p class="empty">Tidak ada SKU over atau no movement.</p>`;
+  const keys=Object.keys(M.abc).sort((x,y)=>(x==="–")-(y==="–")||x.localeCompare(y)),am=Math.max(1,...keys.map(k=>M.abc[k].exV));
+  $("#x-abc").innerHTML=keys.map(k=>{const g=M.abc[k];return`<div class="hb k6"${tipA([k==="–"?"Tanpa kelas":"Kelas "+k,fRp(g.exV)+" · "+f1(g.exP)+" pallet",fI(g.Over)+" over · "+fI(g.NoMove)+" no move"])}><span class="nm">${k==="–"?"Tanpa kelas":"Kelas "+esc(k)}</span><span class="bt"><i style="width:${g.exV/am*100}%;background:var(--blue)"></i></span><span class="vv">${fRp(g.exV)}<br><small style="font-weight:500;color:var(--muted)">${f1(g.exP)} plt</small></span></div>`}).join("");
+  const xs=[["Over",ov],["NoMove",nm]],xm=Math.max(1,...xs.map(x=>sv(x[1])));
+  $("#x-st").innerHTML=xs.map(([s,r])=>{const v=sv(r),p=r.reduce((t,o)=>t+o.exp,0);return`<div class="hb k6"${tipA([SL[s],fI(r.length)+" SKU · "+fRp(v),f1(p)+" pallet"])}><span class="nm">${SN[s]}</span><span class="bt"><i class="bg-${s}" style="width:${v/xm*100}%"></i></span><span class="vv">${fRp(v)}<br><small style="font-weight:500;color:var(--muted)">${f1(p)} plt</small></span></div>`}).join("");
+  drawEx();
+}
+function drawEx(){const ex=M.L.filter(o=>o.st==="Over"||o.st==="NoMove");const F={all:["Semua",ex],Over:["Over stock",ex.filter(o=>o.st==="Over")],NoMove:["No movement",ex.filter(o=>o.st==="NoMove")]};
+  $("#x-f").innerHTML=Object.entries(F).map(([k,[l,r]])=>`<button class="fchip" type="button" data-xf="${k}" aria-pressed="${XF===k}">${l}<span class="n">${fI(r.length)}</span></button>`).join("");
+  tbl("t-ex",[C.sku,C.abc,C.st,C.stock,C.T,C.std,C.ratio,C.exq,C.exv,C.exp,C.tnq,C.mtd,C.avg,fcCol()],F[XF][1],{k:"exv",d:-1,lim:25,ex:[...EX.base,...EX.stock,...EX.ex],name:"Over & no move",empty:"Tidak ada SKU di filter ini."});
+}
+function rReview(){const A=M.L.filter(o=>o.abc==="A").sort((x,y)=>y.mtd-x.mtd||y.base-x.base),cA={OOS:0,Low:0,Normal:0,Over:0,NoMove:0};A.forEach(o=>cA[o.st]++);
+  setText("r-title",A.length?`Kelas A: ${fI(cA.Normal)} dari ${fI(A.length)} SKU di status normal`:"Tidak ada SKU kelas A di data ini");
+  setText("r-lead",`${fI(cA.OOS)} OOS, ${fI(cA.Low)} low, ${fI(cA.Over)} over dan ${fI(cA.NoMove)} no move. SKU prioritas review = Sales MTD & average tertinggi.`);
+  $("#units").innerHTML=A.map(o=>`<span class="unit bg-${o.st}"${tipA([o.desc,o.mat+" · "+SL[o.st],"Sales MTD "+fI(o.mtd)+" · avg "+fI(o.base),"T "+f2(o.T)+" bln vs std "+f2(o.std)+(o.rekom>0?" · rekom "+fI(o.rekom):"")])} role="img" aria-label="${esc(o.desc)}: ${SN[o.st]}"></span>`).join("")||`<p class="empty">Kolom ABC analisis tidak tersedia.</p>`;
+  $("#u-lg").innerHTML=ORDER.map(s=>`<span>${sw(s)}${SN[s]} <b>${fI(cA[s])}</b></span>`).join("");
+  const H=histList(),prev=H.filter(h=>h.date<D.meta.date).sort((x,y)=>x.date<y.date?1:-1)[0];
+  const a=M.a,row=(l,v,t,okk,pv,fmt,goodDown)=>{let dl="–";if(prev&&pv!=null&&ok(pv)){const df=v-pv;dl=df===0?"tetap":`<span class="${(df<0)===goodDown?"ok":"no"}">${df>0?"+":"−"}${fmt(Math.abs(df))}</span>`}return`<tr><td>${l}</td><td class="n"><b>${fmt(v)}</b></td><td class="n">${t}</td><td>${okk==null?"–":okk?'<span class="ok">✓ tercapai</span>':'<span class="no">✗ belum</span>'}</td><td class="n">${dl}</td></tr>`};
+  const pct=x=>fP(x),pp=x=>nf1.format(x*100)+" pp";
+  $("#score").innerHTML=`<div class="scroll"><table class="tbl"><thead><tr><th><span>KPI</span></th><th class="n"><span>Aktual</span></th><th class="n"><span>Target</span></th><th><span>Status</span></th><th class="n"><span>vs ${prev?esc(fDs(prev.date)):"sebelumnya"}</span></th></tr></thead><tbody>
+    ${row("Stock availability",a.avail,"≥ "+esc(S.tgt)+"%",a.avail*100>=S.tgt,prev&&prev.avail,x=>x===a.avail?pct(x):pp(x),false)}
+    ${row("OOS kelas A",cA.OOS,"0",cA.OOS===0,prev&&prev.oosA,fI,true)}
+    ${row("OOS tanpa PO/intransit",a.oosNoInc,"0",a.oosNoInc===0,prev&&prev.oosNoInc,fI,true)}
+    ${row("Low stock",a.cnt.Low,"turun",null,prev&&prev.low,fI,true)}
+    ${row("Over + No Move",a.ex,"turun",null,prev&&prev.ex,fI,true)}
+    ${row("Excess pallet",a.exP,"turun",null,prev&&prev.exP,f1,true)}
+    ${row("Lost sales MTD",a.lostPct,"turun",null,prev&&prev.lostPct,x=>x===a.lostPct?pct(x):pp(x),true)}
+  </tbody></table></div>${prev?"":`<p class="empty" style="font-size:13px">Kolom pembanding terisi setelah file ZM68 dengan tanggal lain diunggah di browser ini.</p>`}`;
+  tbl("t-a",[C.sku,C.st,C.stock,C.mtd,C.pFc,C.avg,C.T,C.std,C.inc,C.rekom,C.exq,{k:"aksi",l:"Aksi",h:x=>x.st==="OOS"||x.st==="Low"?(x.rekom>0?`Operation order ${fI(x.rekom)} pcs`:"Pantau incoming"):x.st==="Over"?"Sales dorong penjualan":"Cek demand"}],A.filter(o=>o.st!=="Normal"),{k:"mtd",d:-1,lim:25,ex:[["Material",x=>x.mat],["Deskripsi",x=>x.desc],["Status",x=>SN[x.st]],["% MTD vs forecast",x=>x.pFc==null?"":+(x.pFc*100).toFixed(1)],...EX.stock,["Incoming",x=>x.inc],["Rekom. order",x=>x.rekom],["Excess qty",x=>Math.round(x.exq)]],name:"Kelas A review",empty:"Semua SKU kelas A normal."});
+}
+let DF={q:"",st:new Set(ORDER),abc:"all"};
+function rData(){const q=norm(DF.q);let r=M.L.filter(o=>DF.st.has(o.st)&&(DF.abc==="all"||o.abc===DF.abc)&&(!q||norm(o.mat+" "+o.desc).includes(q)));
+  $("#stf").innerHTML=`<button class="fchip" type="button" data-sf="all" aria-pressed="${DF.st.size===ORDER.length}">Semua status</button>`+ORDER.map(s=>`<button class="fchip" type="button" data-sf="${s}" aria-pressed="${DF.st.size<ORDER.length&&DF.st.has(s)}">${sw(s)} ${SN[s]}<span class="n">${fI(M.a.cnt[s])}</span></button>`).join("");
+  setText("t-title",`Status per SKU · ${fI(r.length)} SKU`);
+  r=r.slice().sort((x,y)=>ORDER.indexOf(x.st)-ORDER.indexOf(y.st)||(({A:0,B:1,C:2}[x.abc]??3)-({A:0,B:1,C:2}[y.abc]??3))||y.mtd-x.mtd);
+  tbl("t-all",[C.sku,C.abc,C.st,C.stock,C.avg,C.mtd,C.pAvg,C.pFc,C.T,C.std,C.ratio,C.inc,C.rekom,C.exq,C.exv,C.cover,fcCol(),C.val],r,{k:null,lim:100,ex:[...EX.base,...EX.stock,...EX.all],name:"Data SKU",empty:"Tidak ada SKU yang cocok."});
+}
+function rDefs(){const d=[["SKU ber-demand","Average Sales > 0 atau Sales MTD > 0. Jika average ≤ 0 tetapi ada Sales MTD, demand memakai run-rate MTD (ditandai †)."],
+  ["T (bulan)","Curr UU Stock ÷ Average Sales United"],["Std T","Standart T dari ZM68; bila 0 memakai "+f2(S.stdDef)+" bln (ditandai *)"],
+  ["Status","OOS, Low (< "+S.low+"%), Normal, Over (> "+S.over+"%), No Move: lihat aturan di Ringkasan"],["Availability","SKU ber-demand dengan stok > 0 ÷ SKU ber-demand"],
+  ["Incoming","Intransit + DN + Open PO/STR"],["Stok proyeksi","Curr UU Stock + incoming"],["Rekom. order","Std T × average sales − stok proyeksi, dibulatkan ke atas (min. 0), untuk OOS & Low"],
+  ["Perlu order segera","OOS/Low tanpa incoming sama sekali"],["Excess qty","Over: stok − "+S.exb+"% × Std T × average. No Move: seluruh stok"],
+  ["Nilai & pallet excess","Excess qty × NSP; excess qty × (Curr UU Stk in Pallette ÷ Curr UU Stock)"],["Target jual","Qty yang perlu terjual agar T kembali ≤ "+S.over+"% Std T"],
+  ["Cover (hari)","Stok ÷ (average ÷ jumlah hari bulan ini)"],["Habis < akhir bulan","Cover lebih pendek dari sisa hari bulan berjalan (dari Tanggal data)"],
+  ["Proyeksi run-rate","Sales MTD ÷ hari berjalan × jumlah hari bulan ini"],["Lost sales","OOS Qty; % = OOS Qty ÷ (Sales MTD + OOS Qty)"],
+  ["% MTD vs average","Sales MTD ÷ Average Sales United (rata-rata bulanan)"],["% MTD vs forecast","Sales MTD ÷ Forecast M (bulan berjalan)"],
+  ["Kategori target","Tercapai ≥ 100% forecast; On track ≥ pro-rata hari berjalan (hari ke-n ÷ jumlah hari); Di bawah target < pro-rata; Tanpa forecast = ada sales tetapi Forecast M = 0"],
+  ["Diagnosa","Di bawah target tapi % vs average ≥ pro-rata = forecast di atas tren; keduanya di bawah = penjualan melemah"],
+  ["Follow up","Di bawah target: stok OOS/tidak aktif → Operation; Low → Sales + cek stok; lainnya → Sales"],["Perlu / hari","Sisa ke forecast ÷ sisa hari bulan berjalan"]];
+  $("#defs").innerHTML=d.map(([t,x])=>`<dt>${esc(t)}</dt><dd>${esc(x)}</dd>`).join("");
+}
+function histEntry(){const a=M.a,n=x=>ok(x)?x:null;return{date:D.meta.date,file:D.meta.file,avail:n(a.avail),oos:a.cnt.OOS,oosNoInc:a.oosNoInc,oosA:M.L.filter(o=>o.abc==="A"&&o.st==="OOS").length,low:a.cnt.Low,over:a.cnt.Over,nm:a.cnt.NoMove,ex:a.ex,exP:n(a.exP),exV:n(a.exV),lostPct:n(a.lostPct)}}
+const upH=(H,e)=>{H=(Array.isArray(H)?H:[]).filter(h=>h&&h.date!==e.date);H.push(e);H.sort((x,y)=>x.date<y.date?-1:1);return H.slice(-30)};
+const histList=()=>SH.on?(SH.hist||[]):(lsGet(K.hist)||[]);
+function hist(){let H;if(SH.on)H=(SH.hist||[]).slice().sort((x,y)=>x.date<y.date?-1:1);else{H=upH(lsGet(K.hist),histEntry());lsSet(K.hist,H)}
+  $("#hist").innerHTML=`<div class="scroll"><table class="tbl"><thead><tr>${["Tanggal data","File","Availability","OOS","Tanpa incoming","Low","Over","No Move","Excess pallet","Nilai excess"].map((h,i)=>`<th class="${i>1?"n":""}"><span>${h}</span></th>`).join("")}</tr></thead><tbody>${H.slice().reverse().map(h=>`<tr><td>${esc(fDs(h.date))}</td><td>${esc(h.file)}</td><td class="n">${fP(h.avail)}</td><td class="n">${fI(h.oos)}</td><td class="n">${fI(h.oosNoInc)}</td><td class="n">${fI(h.low)}</td><td class="n">${fI(h.over)}</td><td class="n">${fI(h.nm)}</td><td class="n">${f1(h.exP)}</td><td class="n">${fRp(h.exV)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+
+/* ---------- demand chart ---------- */
+function drawDemand(){const s=$("#d-svg");if(!s||!M)return;const W=s.clientWidth,H=s.clientHeight;if(!W||!H)return;
+  const T=DT||M.trend,narrow=W<520,m={t:26,r:6,b:30,l:narrow?44:58};
+  const vals=T.map(t=>t.k==="cur"?Math.max(t.mtd+t.proj,t.fc):t.v);let mx=Math.max(1,...vals);
+  const p=10**Math.floor(Math.log10(mx)),st=[1,2,2.5,5,10].map(x=>x*p).find(x=>mx/x<=5)||p*10;mx=Math.ceil(mx/st)*st;
+  const iw=W-m.l-m.r,ih=H-m.t-m.b,bw=iw/T.length,w=Math.min(54,bw*.64),y=v=>m.t+ih-v/mx*ih;
+  let g=`<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" style="fill:var(--sky)"/><rect width="2" height="6" style="fill:var(--blue)"/></pattern></defs>`;
+  for(let v=0;v<=mx+1e-9;v+=st)g+=`<line class="g-line" x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}"/><text x="${m.l-8}" y="${y(v)+4}" text-anchor="end">${fS(v)}</text>`;
+  T.forEach((t,i)=>{const cx=m.l+bw*i+bw/2,x=cx-w/2;let tip,lab,top;
+    if(t.k==="act"){g+=`<rect class="b-act" x="${x}" y="${y(t.v)}" width="${w}" height="${Math.max(0,y(0)-y(t.v))}" rx="3"/>`;tip=[t.l+" · aktual",fI(t.v)+" pcs"];lab=fS(t.v);top=y(t.v)}
+    else if(t.k==="cur"){const yt=y(t.mtd+t.proj);g+=`<rect class="b-proj" x="${x}" y="${yt}" width="${w}" height="${Math.max(0,y(t.mtd)-yt)}" rx="3"/><rect class="b-mtd" x="${x}" y="${y(t.mtd)}" width="${w}" height="${Math.max(0,y(0)-y(t.mtd))}"/><line class="b-fcm" x1="${x-6}" x2="${x+w+6}" y1="${y(t.fc)}" y2="${y(t.fc)}"/>`;
+      tip=[t.l+" · berjalan","Sales MTD "+fI(t.mtd)+" pcs","Proyeksi run-rate "+fI(t.mtd+t.proj)+" pcs","Forecast "+fI(t.fc)+" pcs"];lab="MTD "+fS(t.mtd);top=Math.min(yt,y(t.fc))}
+    else{g+=`<rect class="b-fc" x="${x+.75}" y="${y(t.v)}" width="${w-1.5}" height="${Math.max(0,y(0)-y(t.v))}" rx="3"/>`;tip=[t.l+" · forecast",fI(t.v)+" pcs"];lab=fS(t.v);top=y(t.v)}
+    if(!narrow||t.k==="cur")g+=`<text class="vl" x="${cx}" y="${top-8}" text-anchor="middle">${lab}</text>`;
+    if(!narrow||i%2===0||t.k==="cur")g+=`<text x="${cx}" y="${H-8}" text-anchor="middle"${t.k==="cur"?' style="fill:var(--ink);font-weight:600"':""}>${narrow?t.s.split(" ")[0]:t.s}</text>`;
+    g+=`<rect class="hit" x="${m.l+bw*i}" y="${m.t}" width="${bw}" height="${ih}" data-tip="${esc(tip.join("\n"))}" tabindex="0"/><rect class="hl" x="${m.l+bw*i}" y="${m.t}" width="${bw}" height="${ih}"/>`});
+  g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y(0)}" y2="${y(0)}" style="stroke:var(--muted)"/>`;
+  s.innerHTML=g}
+const ro=new ResizeObserver(()=>drawDemand());
+
+/* ---------- demand slicer ---------- */
+let SK={abc:"all",set:new Set()},DT=null,SLI=[],SLA=-1;
+const skBase=()=>M.L.filter(o=>SK.abc==="all"||o.abc===SK.abc);
+function skRows(){if(SK.abc==="all"&&!SK.set.size)return null;const b=skBase();return SK.set.size?b.filter(o=>SK.set.has(o.mat)):b}
+function slRender(){const have=new Set(M.L.map(o=>o.mat));for(const m of [...SK.set])if(!have.has(m))SK.set.delete(m);
+  const cl=["A","B","C"].filter(k=>M.abc[k]);
+  $("#sk-abc").innerHTML=[["all","Semua kelas"],...cl.map(k=>[k,"Kelas "+k])].map(([k,l])=>`<button class="fchip sm" type="button" data-skabc="${k}" aria-pressed="${SK.abc===k}">${l}</button>`).join("");
+  const rows=skRows(),t={};
+  if(rows){TK.forEach(k=>t[k]=rows.reduce((s,o)=>s+o[k],0));t.avg=rows.reduce((s,o)=>s+(o.avg>0?o.avg:0),0)}
+  DT=rows?trendOf(t,M.d,M.day,M.dim):null;
+  const lab=SK.set.size?(SK.set.size===1?M.L.find(o=>SK.set.has(o.mat)).desc:fI(SK.set.size)+" SKU dipilih")+(SK.abc==="all"?"":" · kelas "+SK.abc):SK.abc==="all"?"Semua SKU":"Semua SKU kelas "+SK.abc;
+  setText("d-sel-p",(rows?lab+" · ":"Semua SKU · ")+"6 bulan aktual, bulan berjalan (MTD + proyeksi run-rate) dan forecast 3 bulan");
+  $("#d-svg").setAttribute("aria-label","Grafik volume penjualan dan forecast: "+lab);
+  const sel=M.L.filter(o=>SK.set.has(o.mat));
+  $("#sk-chips").innerHTML=(sel.length?sel.slice(0,4).map(o=>`<button class="schip" type="button" data-skrm="${esc(o.mat)}" title="Hapus ${esc(o.desc)} dari slicer"><span>${esc(o.desc)}</span><b aria-hidden="true">×</b></button>`).join("")+(sel.length>4?`<span class="sl-more">+${fI(sel.length-4)} SKU lainnya</span>`:"")+`<button class="sl-clear" type="button" data-skclear="1">Hapus pilihan</button>`:`<span class="sl-hint">Menampilkan <b>${esc(lab)}</b> (${fI(skBase().length)} SKU aktif). Pilih satu atau beberapa SKU untuk melihat grafiknya.</span>`);
+  const sm=$("#sk-sum");
+  if(!rows){sm.hidden=true}else{const pj=M.day?t.mtd/M.day*M.dim:0,ach=t.fcM?t.mtd/t.fcM:null,one=sel.length===1?sel[0]:null;
+    sm.hidden=false;sm.innerHTML=`<div class="sk-stats">${[["Sales MTD",fI(t.mtd)],["Proyeksi",fS(pj)],["Forecast "+MS[M.d.getMonth()],fS(t.fcM)],["Pencapaian",fP(ach,0)],["Avg sales/bln",fS(t.avg)]].map(x=>`<div><b>${x[1]}</b><span>${x[0]}</span></div>`).join("")}</div>`+
+    (one?`<div class="sk-one">${chip(one.st)}<span>${esc(one.mat)} · kelas ${esc(one.abc)} · stok ${fI(one.stock)} · T ${f2(one.T)} vs std ${f2(one.std)} bln · incoming ${fI(one.inc)}${one.rekom>0?" · rekom. order "+fI(one.rekom):""}${one.exq>0?" · excess "+fI(one.exq)+" pcs":""}</span></div>`:"")}
+  if(!$("#sk-list").hidden)slList();
+  drawDemand()}
+function slList(){const ul=$("#sk-list"),q=norm($("#sk-q").value);let c=skBase();if(q)c=c.filter(o=>norm(o.mat+" "+o.desc).includes(q));
+  c=c.slice().sort((x,y)=>(y.fcM+y.s1+y.mtd)-(x.fcM+x.s1+x.mtd));SLI=[];
+  if(q&&c.length>1)SLI.push({all:1,mats:c.map(o=>o.mat),n:c.length});
+  c.slice(0,60).forEach(o=>SLI.push({o}));if(SLA>=SLI.length)SLA=SLI.length-1;
+  ul.innerHTML=SLI.length?SLI.map((it,i)=>it.all?`<li role="option" id="sko-${i}" data-i="${i}" class="all${i===SLA?" act":""}" aria-selected="${it.mats.every(m=>SK.set.has(m))}"><span class="ck">${it.mats.every(m=>SK.set.has(m))?"✓":""}</span><span class="nm">Pilih semua ${fI(it.n)} hasil “${esc($("#sk-q").value.trim())}”</span><span class="vv"></span></li>`:
+    `<li role="option" id="sko-${i}" data-i="${i}" class="${i===SLA?"act":""}" aria-selected="${SK.set.has(it.o.mat)}"><span class="ck">${SK.set.has(it.o.mat)?"✓":""}</span><span class="nm">${esc(it.o.desc)}<small>${esc(it.o.mat)} · kelas ${esc(it.o.abc)} · ${SN[it.o.st]}</small></span><span class="vv">Fc ${fS(it.o.fcM)}</span></li>`).join("")+(c.length>60?`<li class="note" role="presentation">Menampilkan 60 dari ${fI(c.length)} SKU. Ketik untuk mempersempit.</li>`:""):`<li class="note" role="presentation">Tidak ada SKU yang cocok.</li>`;
+  $("#sk-q").setAttribute("aria-activedescendant",SLA>=0?"sko-"+SLA:"");
+  const act=ul.querySelector(".act");if(act)act.scrollIntoView({block:"nearest"})}
+function slOpen(o){const ul=$("#sk-list");ul.hidden=!o;$("#sk-q").setAttribute("aria-expanded",String(o));if(o)slList();else SLA=-1}
+function slPick(i){const it=SLI[i];if(!it)return;if(it.all){const allOn=it.mats.every(m=>SK.set.has(m));it.mats.forEach(m=>allOn?SK.set.delete(m):SK.set.add(m))}else{SK.set.has(it.o.mat)?SK.set.delete(it.o.mat):SK.set.add(it.o.mat)}slRender()}
+$("#sk-q").addEventListener("focus",()=>slOpen(true));
+$("#sk-q").addEventListener("input",()=>{SLA=-1;slOpen(true)});
+$("#sk-q").addEventListener("keydown",e=>{const ul=$("#sk-list");
+  if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();if(ul.hidden)slOpen(true);const n=SLI.length;if(!n)return;SLA=e.key==="ArrowDown"?(SLA+1)%n:(SLA-1+n)%n;slList()}
+  else if(e.key==="Enter"){e.preventDefault();if(SLA>=0)slPick(SLA);else if(SLI.length)slPick(0)}
+  else if(e.key==="Escape"){e.preventDefault();slOpen(false)}});
+$("#sk-list").addEventListener("mousedown",e=>e.preventDefault());
+$("#sk-list").addEventListener("click",e=>{const li=e.target.closest("li[data-i]");if(li){SLA=+li.dataset.i;slPick(+li.dataset.i)}});
+document.addEventListener("pointerdown",e=>{if(!e.target.closest(".sl-box"))slOpen(false)});
+document.addEventListener("click",e=>{
+  const ab=e.target.closest("[data-skabc]");if(ab){SK.abc=ab.dataset.skabc;if(SK.abc!=="all")for(const m of [...SK.set]){const o=M.L.find(x=>x.mat===m);if(!o||o.abc!==SK.abc)SK.set.delete(m)}slRender();return}
+  const rm=e.target.closest("[data-skrm]");if(rm){SK.set.delete(rm.dataset.skrm);slRender();return}
+  if(e.target.closest("[data-skclear]")){SK.set.clear();slRender();return}
+  const pk=e.target.closest(".hb.pick[data-sku]");if(pk){SK={abc:"all",set:new Set([pk.dataset.sku])};$("#sk-q").value="";slRender();const p=$("#d-panel");if(p.getBoundingClientRect().top<0||p.getBoundingClientRect().top>innerHeight*.6)p.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion:reduce)").matches?"auto":"smooth",block:"start"})}});
+
+/* ---------- export ---------- */
+function exportData(id){const st=TS[id];if(!st)return null;const rows=sortedRows(st),ex=st.ex;return{name:st.name,head:ex.map(e=>e[0]),rows:rows.map(r=>ex.map(e=>e[1](r)))}}
+const fmtCell=v=>typeof v==="number"?(Number.isInteger(v)?fI(v):nf2.format(v)):String(v??"");
+async function copyText(t){try{await navigator.clipboard.writeText(t);return true}catch(e){try{const ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();const r=document.execCommand("copy");ta.remove();return r}catch(e2){return false}}}
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc32=u=>{let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0};
+function zip(files){const te=new TextEncoder(),parts=[],cd=[];let off=0;
+  for(const [name,txt] of Object.entries(files)){const nb=te.encode(name),db=te.encode(txt),crc=crc32(db);
+    const h=new DataView(new ArrayBuffer(30));h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(12,0x21,true);h.setUint32(14,crc,true);h.setUint32(18,db.length,true);h.setUint32(22,db.length,true);h.setUint16(26,nb.length,true);
+    parts.push(new Uint8Array(h.buffer),nb,db);
+    const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(14,0x21,true);c.setUint32(16,crc,true);c.setUint32(20,db.length,true);c.setUint32(24,db.length,true);c.setUint16(28,nb.length,true);c.setUint32(42,off,true);
+    cd.push(new Uint8Array(c.buffer),nb);off+=30+nb.length+db.length}
+  const sz=cd.reduce((s,u)=>s+u.length,0),n=Object.keys(files).length,e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,n,true);e.setUint16(10,n,true);e.setUint32(12,sz,true);e.setUint32(16,off,true);
+  return new Blob([...parts,...cd,new Uint8Array(e.buffer)])}
+function xlsx(sheet,head,rows){
+  const x=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,"");
+  const col=i=>{let s="";i++;while(i){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s};
+  const all=[head,...rows];let sd="";
+  all.forEach((r,ri)=>{sd+=`<row r="${ri+1}">`+r.map((v,ci)=>{const ref=col(ci)+(ri+1);if(ri===0)return`<c r="${ref}" t="inlineStr" s="1"><is><t>${x(v)}</t></is></c>`;
+    if(typeof v==="number"&&isFinite(v))return`<c r="${ref}" s="${Number.isInteger(v)?2:3}"><v>${v}</v></c>`;if(v==null||v==="")return"";return`<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${x(v)}</t></is></c>`}).join("")+"</row>"});
+  const last=col(head.length-1)+all.length,wd=head.map((h,i)=>Math.min(48,Math.max(9,...all.slice(0,300).map(r=>String(r[i]??"").length))+2));
+  const NS='xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"',X='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  return zip({"[Content_Types].xml":X+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>',
+    "_rels/.rels":X+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+    "xl/workbook.xml":X+`<workbook ${NS} xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${x(sheet)}" sheetId="1" r:id="rId1"/></sheets><definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">'${x(sheet)}'!$A$1:$${col(head.length-1)}$${all.length}</definedName></definedNames></workbook>`,
+    "xl/_rels/workbook.xml.rels":X+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
+    "xl/styles.xml":X+`<styleSheet ${NS}><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="3" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="4" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`,
+    "xl/worksheets/sheet1.xml":X+`<worksheet ${NS}><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${wd.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join("")}</cols><sheetData>${sd}</sheetData><autoFilter ref="A1:${last}"/></worksheet>`})}
+document.addEventListener("click",async e=>{
+  const cb=e.target.closest("[data-copy]");if(cb){const d=exportData(cb.dataset.copy);if(!d)return;const t=[d.head.join("\t"),...d.rows.map(r=>r.map(fmtCell).join("\t"))].join("\n");toast(await copyText(t)?`${fI(d.rows.length)} baris tersalin. Tempel ke Excel, email atau WhatsApp.`:"Gagal menyalin. Coba lagi.");return}
+  const db=e.target.closest("[data-dl]");if(db&&(dl||NATIVE)){const d=exportData(db.dataset.dl);if(!d)return;try{await saveFile(`${d.name} ${D.meta.date}.xlsx`,xlsx(d.name.slice(0,31),d.head,d.rows));toast("File Excel disimpan.")}catch(err){if(err&&err.code==="declined")return;if(err&&/unavailable|not_granted|capability/.test(err.code||"")){document.body.classList.remove("can-dl")}toast("Unduhan tidak tersedia di tampilan ini. Gunakan Salin.")}}});
+const NATIVE=!window.claude&&window.self===window.top;
+if(NATIVE)document.body.classList.add("can-dl");
+else window.claude.use?.("downloads").then(x=>{if(x){dl=x;document.body.classList.add("can-dl")}}).catch(()=>{});
+function saveFile(name,blob){if(dl)return dl.save({filename:name,data:blob});const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);return Promise.resolve({status:"saved"})}
+
+/* ---------- interactions ---------- */
+document.addEventListener("click",e=>{
+  const k=e.target.closest("a.kpi[data-f]");if(k){DF.st=new Set([k.dataset.f]);DF.abc="all";DF.q="";$("#q").value="";$("#abcf").value="all";rData()}
+  const of=e.target.closest("[data-of]");if(of){OF=of.dataset.of;if(M)drawOrd()}
+  const xf=e.target.closest("[data-xf]");if(xf){XF=xf.dataset.xf;drawEx()}
+  const sf=e.target.closest("[data-sf]");if(sf){const s=sf.dataset.sf;if(s==="all")DF.st=new Set(ORDER);else if(DF.st.size===ORDER.length)DF.st=new Set([s]);else{DF.st.has(s)?DF.st.delete(s):DF.st.add(s);if(!DF.st.size)DF.st=new Set(ORDER)}if(TS["t-all"])TS["t-all"].lim=100;rData()}});
+let qt;$("#q").addEventListener("input",e=>{clearTimeout(qt);qt=setTimeout(()=>{DF.q=e.target.value;if(TS["t-all"])TS["t-all"].lim=100;rData()},150)});
+$("#abcf").addEventListener("change",e=>{DF.abc=e.target.value;rData()});
+const VIEWS=["ringkasan","demand","supply","excess","review","data","aturan"];
+function route(){const v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):"ringkasan";
+  VIEWS.forEach(x=>{$("#v-"+x).hidden=x!==v});document.querySelectorAll(".tabs a").forEach(a=>a.toggleAttribute("aria-current",false)||(a.dataset.v===v&&a.setAttribute("aria-current","page")));
+  const top=$("#main").offsetTop-$(".tabs").offsetHeight;if(window.scrollY>top)window.scrollTo(0,top);
+  if(v==="demand")requestAnimationFrame(drawDemand);hideTip()}
+window.addEventListener("hashchange",route);
+
+/* tooltip */
+const tip=$("#tip");
+function showTip(el,x,y){const t=el.getAttribute("data-tip");if(!t)return;tip.replaceChildren();t.split("\n").forEach((l,i)=>{const n=document.createElement(i?"div":"b");n.textContent=l;tip.appendChild(n)});tip.hidden=false;
+  const r=tip.getBoundingClientRect();let L=x+14,T=y+14;if(L+r.width>innerWidth-8)L=x-r.width-14;if(L<8)L=8;if(T+r.height>innerHeight-8)T=y-r.height-14;if(T<8)T=8;tip.style.left=L+"px";tip.style.top=T+"px"}
+function hideTip(){tip.hidden=true}
+document.addEventListener("pointermove",e=>{const el=e.target.closest&&e.target.closest("[data-tip]");if(el)showTip(el,e.clientX,e.clientY);else hideTip()});
+document.addEventListener("focusin",e=>{const el=e.target.closest&&e.target.closest("[data-tip]");if(el){const r=el.getBoundingClientRect();showTip(el,r.left+r.width/2,r.bottom)}else hideTip()});
+document.addEventListener("scroll",hideTip,{passive:true});
+
+let tt;function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>t.hidden=true,3800)}
+function showErr(m){const e=$("#h-err");e.textContent=m;e.hidden=false}
+
+/* upload */
+async function handleFile(f){if(!f)return;toast("Membaca "+f.name+"…");
+  try{const grid=await readFile(f);const nd=normalize(grid,f.name,f.lastModified);D=nd;TS["t-ord"]&&(TS["t-ord"].lim=25);
+    const saved=lsSet(K.data,D);if(!SDB)SF.on=false;render();route();
+    if(canPub()){toast("Membagikan data ke semua viewer…");const okp=await pub(true);if(okp){render();toast(`Data diperbarui dan dibagikan ke semua viewer (${fI(nd.meta.nRows)} SKU).`)}else toast("Data diperbarui di browser ini, tetapi gagal dibagikan ke viewer.")}
+    else{setShare("local");toast(`Data diperbarui: ${fI(nd.meta.nRows)} SKU dibaca dari ${f.name}${saved?"":" (tidak tersimpan di browser)"}.`)}}
+  catch(err){showErr("Gagal membaca "+f.name+": "+(err&&err.message||err));toast("File tidak bisa dibaca.")}}
+$("#btn-up").addEventListener("click",()=>$("#file").click());
+$("#file").addEventListener("change",e=>{handleFile(e.target.files[0]);e.target.value=""});
+let dc=0;const drop=$("#drop");
+window.addEventListener("dragenter",e=>{if(!RO&&[...(e.dataTransfer?.types||[])].includes("Files")){dc++;drop.hidden=false}});
+window.addEventListener("dragleave",()=>{dc=Math.max(0,dc-1);if(!dc)drop.hidden=true});
+window.addEventListener("dragover",e=>e.preventDefault());
+window.addEventListener("drop",e=>{e.preventDefault();dc=0;drop.hidden=true;const f=e.dataTransfer?.files?.[0];if(f&&!RO)handleFile(f)});
+
+/* settings */
+function fillSettings(){if(!D)return;$("#s-date").value=D.meta.date;$("#s-low").value=S.low;$("#s-over").value=S.over;$("#s-exb").value=S.exb;$("#s-tgt").value=S.tgt;$("#s-std").value=S.stdDef}
+$("#btn-set").addEventListener("click",()=>{const p=$("#settings"),o=p.hidden;p.hidden=!o;$("#btn-set").setAttribute("aria-expanded",String(o));if(o)fillSettings()});
+function applyS(){const v=id=>parseFloat($(id).value);const n={low:v("#s-low"),over:v("#s-over"),exb:v("#s-exb"),tgt:v("#s-tgt"),stdDef:v("#s-std")};
+  for(const k in n)if(!ok(n[k])||n[k]<=0)n[k]=DEF[k];if(n.over<=n.low)n.over=n.low+1;S=n;lsSet(K.set,S);
+  const dv=$("#s-date").value;if(D&&pd(dv)&&dv!==D.meta.date){D.meta.date=dv;lsSet(K.data,D)}
+  if(D){render();if(canPub()&&(SH.on||APIM)){pub(false).then(okp=>{if(okp)render();toast(okp?"Pengaturan diterapkan untuk semua viewer.":"Pengaturan diterapkan di browser ini, tetapi gagal dibagikan.")})}else toast("Pengaturan diterapkan.")}}
+$("#s-apply").addEventListener("click",applyS);$("#sform").addEventListener("submit",e=>{e.preventDefault();applyS()});
+$("#s-reset").addEventListener("click",()=>{S=Object.assign({},DEF);lsSet(K.set,S);fillSettings();if(D)render();toast("Pengaturan dikembalikan ke default.")});
+$("#s-clear").addEventListener("click",()=>{lsDel(K.data);lsDel(K.hist);toast("Data tersimpan di browser ini dihapus.");if(SH.on&&SH.m){SH.ver=null;loadShared(SH.m)}else boot()});
+
+/* ---------- shared data: Claude (db) or a file on the web server ---------- */
+let SDB=null,CANW=null,RO=false,PUB=false,PENDV=null,SHK="";
+let SH={on:false,ver:null,rev:0,at:null,hist:[],chunks:0,m:null};
+let SF={on:false,tag:null};const SFILE="data/zm68.xlsx",CH=45000;
+const fAt=s=>{const d=s?new Date(s):null;return d&&!isNaN(d)?`${d.getDate()} ${MS[d.getMonth()]} ${String(d.getHours()).padStart(2,"0")}.${String(d.getMinutes()).padStart(2,"0")}`:""};
+function setShare(k){SHK=k;const T={on:`· <i class="dot ok"></i>Data bersama, diperbarui ${esc(fAt(SH.at))}`,none:CANW===false?"· Menunggu pemilik mengunggah data":"· <i class=\"dot\"></i>Belum dibagikan ke viewer",wait:"· Data bersama belum dapat dimuat, mencoba lagi…",load:"· Memuat data bersama…",off:"· Tampilan lokal (data bersama tidak tersedia di tampilan ini)",err:"· <i class=\"dot bad\"></i>Data bersama gagal dimuat",errw:"· <i class=\"dot bad\"></i>Gagal membagikan data ke viewer",file:`· <i class="dot ok"></i>Data dari server, file ${esc(fAt(SF.at))||"terbaru"}`,local:"· Tampilan lokal di browser ini"};
+  $("#h-share").innerHTML=T[k]||"";$("#btn-share").hidden=!(canPub()&&D&&k!=="on"&&k!=="load")}
+const canPub=()=>(SDB&&CANW!==false)||(APIM&&!!AK);
+const pub=full=>APIM?publishApi():publishShared(full);
+function setRO(v){RO=v;document.body.classList.toggle("ro",v);document.querySelectorAll("#sform input").forEach(i=>i.disabled=v);$("#s-note").hidden=!v;if(!D)showEmpty()}
+function showEmpty(mode){D=null;$("#main").hidden=true;$(".tabs").hidden=true;$("#empty").hidden=false;
+  const wait=mode==="load"||RO;setText("h-title",wait?(mode==="load"?"Memuat data…":"Belum ada data"):"Unggah file ZM68 untuk mulai");
+  setText("h-lead","Dashboard monitoring stok Sales–Operation: status OOS, Low, Normal, Over dan No Move, pencapaian target, dan daftar aksi untuk Sales & Operation.");
+  setText("e-h",mode==="load"?"Memuat data bersama…":RO?"Menunggu data dari pemilik dashboard":"Mulai dengan file ZM68");
+  setText("e-p",mode==="load"?"Sebentar, data terbaru sedang dimuat.":RO?"Data akan tampil otomatis setelah pemilik dashboard mengunggah file ZM68. Halaman ini tidak perlu dimuat ulang.":"Jalankan ZM68 di SAP, export ke spreadsheet (.xlsx), lalu unggah di sini. Semua status stok, KPI dan daftar aksi Sales–Operation dihitung otomatis"+(SDB?" dan langsung tampil untuk semua viewer.":"."));
+  $("#e-btn").hidden=mode==="load"}
+async function publishShared(full){if(!SDB||CANW===false||!D||PUB)return false;PUB=true;
+  try{let ver=SH.ver,chunks=SH.chunks||0,old=chunks;const rows=D.rows;
+    if(full||!ver){ver=Date.now().toString(36)+Math.random().toString(36).slice(2,7);PENDV=ver;const parts=[];let cur=[],sz=0;
+      for(const r of rows){const l=JSON.stringify(r).length+1;if(sz+l>CH&&cur.length){parts.push(cur);cur=[];sz=0}cur.push(r);sz+=l}if(cur.length)parts.push(cur);
+      for(let i=0;i<parts.length;i++)await SDB.doc("shared/c"+i).set({ver,rows:JSON.stringify(parts[i])});chunks=parts.length}
+    const rev=full||!SH.ver?0:(SH.rev||0)+1,hist=upH(SH.hist,histEntry()),at=new Date().toISOString();PENDV=ver+"|"+rev;
+    const m={ver,rev,at,file:D.meta.file,date:D.meta.date,nRows:D.meta.nRows,tot:D.meta.tot,cols:D.cols,chunks,settings:{low:S.low,over:S.over,exb:S.exb,tgt:S.tgt,stdDef:S.stdDef},hist};
+    await SDB.doc("shared/meta").set(m);SH={on:true,ver,rev,at,hist,chunks,m};
+    for(let i=chunks;i<old;i++)SDB.doc("shared/c"+i).delete().catch(()=>{});
+    setShare("on");return true}
+  catch(e){if(e&&e.code==="invalid_argument"&&CANW==null)setRO(true);setShare("errw");return false}
+  finally{PUB=false;PENDV=null}}
+async function loadShared(m,tries=0){
+  try{if(!m||!Array.isArray(m.cols)||!(m.chunks>0))throw new Error("meta");
+    const parts=await Promise.all(Array.from({length:m.chunks},(_,i)=>SDB.doc("shared/c"+i).get()));const rows=[];
+    for(const p of parts){const d=p.exists?p.data():null;if(!d||d.ver!==m.ver||typeof d.rows!=="string"){if(tries<4){setTimeout(()=>loadShared(m,tries+1),1500);return}throw new Error("chunk")}const r=JSON.parse(d.rows);if(Array.isArray(r))rows.push(...r)}
+    const again=SH.ver!=null&&SH.ver!==m.ver;
+    SH={on:true,ver:m.ver,rev:m.rev||0,at:m.at,hist:Array.isArray(m.hist)?m.hist:[],chunks:m.chunks,m};
+    D={v:1,meta:{file:String(m.file||"ZM68"),date:pd(m.date)?m.date:iso(new Date()),nRows:+m.nRows||rows.length,tot:m.tot||{}},cols:m.cols,rows};
+    if(m.settings)S=Object.assign({},DEF,m.settings);
+    render();route();setShare("on");if(again)toast(`Data diperbarui oleh pemilik dashboard: ${D.meta.file}`)}
+  catch(e){setShare("err");if(!D)showEmpty()}}
+function onMeta(snap){if(!snap.exists){if(SH.on){SH={on:false,ver:null,rev:0,at:null,hist:[],chunks:0,m:null}}setShare("none");if(!D)showEmpty();return}
+  const m=snap.data();if(!m)return;const key=m.ver+"|"+(m.rev||0);if(PENDV&&(m.ver===PENDV||key===PENDV))return;
+  if(m.ver===SH.ver){if((m.rev||0)!==SH.rev){SH.rev=m.rev||0;SH.at=m.at;SH.hist=Array.isArray(m.hist)?m.hist:[];SH.m=m;if(m.settings)S=Object.assign({},DEF,m.settings);if(D&&pd(m.date))D.meta.date=m.date;if(D)render();toast("Pengaturan dashboard diperbarui oleh pemilik.")}setShare("on");return}
+  loadShared(m)}
+async function shareInit(){if(NATIVE||!window.claude?.use)return;
+  let db=null,u=null;try{[db,u]=await Promise.all([window.claude.use("db"),window.claude.use("user")])}catch(e){}
+  if(!db){setShare("off");if(!D)showEmpty();return}
+  SDB=db;try{CANW=u?await u.can("data.write"):null}catch(e){CANW=null}setRO(CANW===false);
+  if(!D)showEmpty("load");setShare("load");
+  let got=false;const t=setTimeout(()=>{if(!got)setShare("wait")},10000);
+  SDB.doc("shared/meta").onSnapshot(snap=>{if(!snap.metadata.fromCache){got=true;clearTimeout(t)}onMeta(snap)},()=>{got=true;clearTimeout(t);setShare("err");if(!D)showEmpty()})}
+$("#btn-share").addEventListener("click",async()=>{const okp=await pub(true);if(okp)render();toast(okp?"Data ini sekarang tampil untuk semua viewer.":"Gagal membagikan data ke viewer.")});
+async function staticLoad(first){try{const r=await fetch(SFILE,{cache:"no-store"});if(!r.ok)return false;
+    const lm=r.headers.get("last-modified"),tag=r.headers.get("etag")||lm||r.headers.get("content-length");
+    const nd=normalize(await parseXLSX(await r.arrayBuffer()),"zm68.xlsx",lm?Date.parse(lm):Date.now());
+    D=nd;SF={on:true,tag,at:lm};render();route();setShare("file");if(!first)toast("Data diperbarui dari server.");return true}catch(e){return false}}
+async function staticCheck(){if(!SF.on||document.hidden)return;try{const r=await fetch(SFILE,{method:"HEAD",cache:"no-store"});const tag=r.headers.get("etag")||r.headers.get("last-modified")||r.headers.get("content-length");if(r.ok&&tag&&tag!==SF.tag)staticLoad(false)}catch(e){}}
+if(NATIVE){setInterval(staticCheck,300000);document.addEventListener("visibilitychange",staticCheck)}
+
+/* ---------- Netlify: function /api/data + Netlify Blobs ---------- */
+const API="/api/data";let APIM=false,AK=lsGet(K.ak)||"",VK=lsGet(K.vk)||"",APT=null;
+const apiH=()=>{const h={};if(VK)h["x-view-key"]=VK;if(AK)h["x-admin-key"]=AK;return h};
+async function apiGet(meta){try{const r=await fetch(API+(meta?"?meta=1":""),{cache:"no-store",headers:apiH()});const ct=r.headers.get("content-type")||"";
+    if(r.status===401&&ct.includes("json"))return{status:"auth"};if(!r.ok||!ct.includes("json"))return{status:"none"};const j=await r.json();return{status:j&&j.ver?"ok":"empty",j}}catch(e){return{status:"none"}}}
+async function apiCheck(key){try{const r=await fetch(API+"?check=1",{method:"POST",headers:{"x-admin-key":key}});return r.ok}catch(e){return false}}
+function applyApi(j){const d=j.data;if(!d||!Array.isArray(d.rows)||!Array.isArray(d.cols)||!d.meta)return;const again=SH.ver!=null&&SH.ver!==j.ver;
+  SH={on:true,ver:j.ver,rev:0,at:j.at,hist:Array.isArray(j.hist)?j.hist:[],chunks:0,m:null};
+  D={v:1,meta:{file:String(d.meta.file||"ZM68"),date:pd(d.meta.date)?d.meta.date:iso(new Date()),nRows:+d.meta.nRows||d.rows.length,tot:d.meta.tot||{}},cols:d.cols,rows:d.rows};
+  if(j.settings)S=Object.assign({},DEF,j.settings);render();route();setShare("on");if(again)toast(`Data diperbarui: ${D.meta.file}`)}
+async function publishApi(){if(!APIM||!AK||!D||PUB)return false;PUB=true;
+  try{const hist=upH(SH.hist,histEntry());
+    const r=await fetch(API,{method:"POST",headers:{...apiH(),"content-type":"application/json"},body:JSON.stringify({data:D,settings:{low:S.low,over:S.over,exb:S.exb,tgt:S.tgt,stdDef:S.stdDef},hist})});
+    if(r.status===401){adminOff();toast("Kunci admin tidak valid. Masuk ulang di Pengaturan.");return false}
+    if(!r.ok){setShare("errw");return false}
+    const j=await r.json();SH={on:true,ver:j.ver,rev:0,at:j.at,hist,chunks:0,m:null};setShare("on");return true}
+  catch(e){setShare("errw");return false}finally{PUB=false}}
+async function apiTick(){if(!APIM||document.hidden||PUB)return;const g=await apiGet(true);if(g.status==="ok"&&g.j.ver!==SH.ver){const f=await apiGet(false);if(f.status==="ok")applyApi(f.j)}}
+function apiPoll(){if(APT)return;APT=setInterval(apiTick,180000);document.addEventListener("visibilitychange",apiTick)}
+function adminUI(){$("#adm").hidden=!APIM;$("#s-login").hidden=!!AK;$("#s-logout").hidden=!AK;$("#s-ak").hidden=!!AK;$("#s-ak").previousElementSibling.hidden=!!AK;
+  setText("adm-st",AK?"Mode admin aktif: Anda bisa mengunggah file dan mengubah pengaturan untuk semua viewer.":"Hanya untuk tim yang memperbarui data ZM68")}
+function adminOff(){AK="";lsDel(K.ak);setRO(true);adminUI();setShare(SH.on?"on":"none")}
+async function apiStart(g){APIM=true;setRO(!AK);adminUI();apiPoll();
+  if(g.status==="auth"){showAccess();return}
+  if(g.status==="ok"){applyApi(g.j)}
+  else{const sv=AK&&lsGet(K.data);if(sv&&sv.v===1&&Array.isArray(sv.rows)){D=sv;render();route()}else showEmpty();setShare("none")}
+  if(AK&&!(await apiCheck(AK))){adminOff();toast("Kunci admin tersimpan tidak berlaku lagi.")}}
+function showAccess(){showEmpty();setText("h-title","Dashboard dilindungi kode akses");setText("e-h","Masukkan kode akses");setText("e-p","Minta kode akses dashboard ke tim Logistik. Kode cukup dimasukkan sekali di browser ini.");
+  $("#e-btn").hidden=true;$("#e-hint").hidden=true;$("#e-form").hidden=false;setTimeout(()=>$("#e-key").focus(),50)}
+$("#e-form").addEventListener("submit",async e=>{e.preventDefault();const key=$("#e-key").value.trim();if(!key)return;const er=$("#e-err");er.hidden=true;
+  const isA=await apiCheck(key);if(isA){AK=key;lsSet(K.ak,AK)}VK=key;const g=await apiGet(false);
+  if(g.status==="auth"){VK="";AK=isA?AK:"";er.textContent="Kode akses salah.";er.hidden=false;return}
+  lsSet(K.vk,VK);$("#e-form").hidden=true;$("#e-hint").hidden=false;$("#e-key").value="";await apiStart(g)});
+$("#s-login").addEventListener("click",async()=>{const key=$("#s-ak").value.trim();if(!key)return;if(await apiCheck(key)){AK=key;lsSet(K.ak,AK);$("#s-ak").value="";setRO(false);adminUI();setShare(SH.on?"on":"none");if(!D)showEmpty();toast("Mode admin aktif.")}else toast("Kunci admin salah.")});
+$("#s-logout").addEventListener("click",()=>{adminOff();toast("Keluar dari mode admin.")});
+
+/* boot */
+async function boot(){if(NATIVE){const g=await apiGet(false);if(g.status!=="none"){await apiStart(g);return}}
+  if(NATIVE&&await staticLoad(true))return;
+  const sv=lsGet(K.data);if(sv&&sv.v===1&&Array.isArray(sv.rows)&&sv.meta){D=sv;render();route();if(NATIVE)setShare("local");return}
+  showEmpty(NATIVE?"":"load")}
+document.addEventListener("click",e=>{if(e.target.closest("[data-upload]"))$("#file").click()});
+window.__zm={compute,normalize,readFile,xlsx,staticCheck,apiTick,get M(){return M},get D(){return D},get S(){return S},get SH(){return SH}};
+route();boot().then(shareInit);
+}
+</script>
+</body>
+</html>
