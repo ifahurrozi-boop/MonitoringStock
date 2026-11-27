@@ -1,6 +1,5 @@
 [build]
-  publish = "public"
-  functions = "netlify/functions"
+  publish = "."
   command = "echo 'Tidak ada build step'"
 
 [[headers]]
